@@ -4,6 +4,13 @@ Pendientes cosméticos y de largo plazo. Los esenciales (trigger change, store p
 clave, error visible, CI, tag v0.1.0, form submit) están implementados; esto es
 lo que quedó afuera deliberadamente.
 
+## Diseñado, pendiente de implementar
+
+- [ ] **Capa SSE (streams en tiempo real)** — ver [docs/SSE.md](SSE.md). La
+      necesitan GAIA (chat/agente/tareas en vivo) y MisCanarios (lo de otros en
+      tiempo real). Diseño completo: RegisterStream, startStreams(), helpers
+      SSEHeaders/WriteSSE, CLI stream=true.
+
 ## Prioridad alta (antes de producción real)
 
 - [ ] **Errores por campo en forms**: hoy el form submit emite `islands:error` con
