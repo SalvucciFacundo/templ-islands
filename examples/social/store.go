@@ -105,10 +105,10 @@ func (s *Store) Follow(authorID int) (views.Post, bool) {
 }
 
 // Create appends a new post and returns it.
-func (s *Store) Create(text string) views.Post {
+func (s *Store) Create(text, image string) views.Post {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	p := views.Post{ID: s.next, Text: text, AuthorID: s.next}
+	p := views.Post{ID: s.next, Text: text, Image: image, AuthorID: s.next}
 	s.next++
 	s.posts = append(s.posts, p)
 	return p

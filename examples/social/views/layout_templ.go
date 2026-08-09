@@ -44,7 +44,7 @@ func Layout(title string, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"https://unpkg.com/htmx.org@2.0.4\" defer></script><script src=\"/islands/runtime.js\" defer></script></head><body><main class=\"container\"><h1>Demo Social — libreria templ-islands</h1><p class=\"subtitle\">Modo del like: <span id=\"mode-badge\" class=\"badge\">B · optimistic UI (runtime)</span></p><nav class=\"nav\"><a href=\"/\">Feed</a> <a href=\"/chat\">Chat con el agente</a></nav>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"https://unpkg.com/htmx.org@2.0.4\" defer></script><script src=\"/islands/runtime.js\" defer></script><script src=\"/static/upload-status.js\" defer></script></head><body><main class=\"container\"><h1>Demo Social — libreria templ-islands</h1><p class=\"subtitle\">Modo del like: <span id=\"mode-badge\" class=\"badge\">B · optimistic UI (runtime)</span></p><nav class=\"nav\"><a href=\"/\">Feed</a> <a href=\"/chat\">Chat con el agente</a></nav>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

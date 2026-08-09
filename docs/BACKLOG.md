@@ -6,14 +6,10 @@ con prioridades.
 
 ## Prioridad alta (antes de producción real)
 
-- [ ] **Test E2E en browser (Playwright)**: el único test que falta. El bug del
-      infinite scroll (post-more buscaba un renderer inexistente) fallaba SOLO
-      en el browser real — ningún test Go/JS lo cazó. Un smoke test E2E que
-      abra el ejemplo y verifique like, búsqueda, comentarios y SSE en un
-      browser real atraparía esta clase de bug.
 - [ ] **Multi-tab con BroadcastChannel**: dos pestañas del mismo chat abren dos
       conexiones SSE y renderizan dos veces. Compartir una conexión por clave de
-      dominio vía BroadcastChannel evita la duplicación.
+      dominio vía BroadcastChannel evita la duplicación. (Diseño previo antes de
+      implementar: protocolo de mensajes, reconciliación, ciclo de vida.)
 
 ## Prioridad media
 
@@ -40,10 +36,22 @@ con prioridades.
 
 ## Hecho recientemente (para referencia)
 
+- ✅ E2E Playwright completo (7 tests: like, search, comments, chat SSE, field
+      errors, upload con imagen, infinite scroll) — destapó y confirmó bugs que
+      ningún test Go/JS veía.
+- ✅ Chat SSE arreglado: los roots de stream usan `data-stream` (no `data-island`)
+      y `renderInto` ahora recibe el nombre de la isla explícito (ba77ab8).
+- ✅ Subida de archivos: multipart automático + `islands:progress` (XHR solo con
+      archivos, fetch no mide progreso) + previews optimistas con
+      `data-preview` (createObjectURL con revoke).
+- ✅ Renderer compartido explícito (`renderer=` en `@island` → `WithRenderer`):
+      `new-post` ahora lo declara (el happy path del form submit no se había
+      probado en browser y fallaba con "renderer not found").
+- ✅ Parity runner simula `escapeHtml` (el golden test estaba roto desde el
+      commit inicial sin que nadie lo notara).
 - ✅ Heartbeats SSE (`WriteSSEPing`) en el ejemplo del chat.
-- ✅ Tests del runtime JS (11 tests de `runtime-core.js` con `node --test`).
+- ✅ Tests del runtime JS (14 tests de `runtime-core.js` con `node --test`).
 - ✅ Cache headers en el runtime handler (JS inmutable con cache largo, manifiesto sin cache).
-- ✅ Renderer compartido explícito (`renderer=` en `@island` → `WithRenderer`).
 - ✅ Release automático en CI al pushear tags `v*`.
 - ✅ Batching de mutaciones: **descartado con criterio** (sobreingeniería para web HTTP).
 
@@ -56,4 +64,5 @@ appointments-app, dolar-hoy-arg, novel-editor, GAIA) y de apps CRUD en general.
 data-confirm), búsqueda (re-render input con data-debounce), filtros por select
 (re-render change), click para expandir (re-render click), formularios (form
 submit + field_errors), feedback (eventos), infinite scroll (intersect), chat
-en vivo (stream SSE con Last-Event-ID), CSRF, anti-race (AbortController).
+en vivo (stream SSE con Last-Event-ID), CSRF, anti-race (AbortController),
+upload de archivos (multipart + islands:progress + previews optimistas).

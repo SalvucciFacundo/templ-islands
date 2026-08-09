@@ -63,10 +63,38 @@ test("field errors: empty post shows inline error", async ({ page }) => {
   await page.goto("/");
   // el input es required (HTML5) — llenamos con un espacio que el server
   // trimea a vacio y responde field_errors
-  await page.locator(".new-post input").fill(" ");
+  await page.locator(".new-post input[type=text]").fill(" ");
   await page.locator(".new-post button").click();
   await expect(page.locator("[data-error-for=text]")).toHaveClass(/show/);
-  await expect(page.locator(".new-post input")).toHaveClass(/invalid/);
+  await expect(page.locator(".new-post input[type=text]")).toHaveClass(/invalid/);
+});
+
+test("upload: file input previews instantly and the post carries the image", async ({ page }) => {
+  await page.goto("/");
+
+  // PNG real de 1x1 para que el server lo valide por contenido
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+    "base64"
+  );
+
+  // al elegir el archivo aparece la vista previa optimista (sin subir nada)
+  await page.setInputFiles(".upload-label input[type=file]", {
+    name: "foto.png",
+    mimeType: "image/png",
+    buffer: png,
+  });
+  await expect(page.locator("#new-post-previews img")).toHaveCount(1);
+
+  // publicar: el submit va como multipart y el post aparece con la imagen
+  await page.fill(".new-post input[type=text]", "post con foto");
+  await page.locator(".new-post button").click();
+  await expect(page.locator(".post-text").last()).toContainText("post con foto");
+
+  const img = page.locator(".post").last().locator(".post-image");
+  await expect(img).toBeVisible();
+  const src = await img.getAttribute("src");
+  expect(src).toMatch(/^\/static\/uploads\//);
 });
 
 test("infinite scroll: sentinel appends pages until the end", async ({ page }) => {

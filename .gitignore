@@ -12,6 +12,9 @@ node_modules/
 test-results/
 playwright-report/
 
+# Archivos subidos por el ejemplo
+examples/social/static/uploads/
+
 # Editores / SO
 .idea/
 .vscode/

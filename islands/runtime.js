@@ -340,7 +340,14 @@
 
   // submit: POST the form data, re-render the target with the response.
   function submitForm(form, cfg) {
-    var body = new URLSearchParams(new FormData(form));
+    var formData = new FormData(form);
+    // Con archivos el body va como FormData nativo (multipart/form-data) y el
+    // progreso de subida se emite como islands:progress.
+    if (islandsCore.formHasFiles(formData)) {
+      submitFormMultipart(form, cfg, formData);
+      return;
+    }
+    var body = new URLSearchParams(formData);
     fetch(cfg.endpoint, { method: cfg.method || "POST", headers: csrfHeaders(cfg.method), body: body })
       .then(function (res) {
         if (!res.ok) {
@@ -371,6 +378,61 @@
       });
   }
 
+  // submit con archivos: XHR en vez de fetch porque fetch NO expone el
+  // progreso de subida (xhr.upload.onprogress). El browser pone el header
+  // multipart/form-data con su boundary automaticamente — no setear
+  // Content-Type a mano o el boundary se rompe.
+  function submitFormMultipart(form, cfg, formData) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(cfg.method || "POST", cfg.endpoint);
+
+    var headers = csrfHeaders(cfg.method);
+    Object.keys(headers).forEach(function (k) {
+      xhr.setRequestHeader(k, headers[k]);
+    });
+
+    xhr.upload.onprogress = function (e) {
+      if (!e.lengthComputable) return;
+      emit("islands:progress", {
+        island: form.dataset.island,
+        loaded: e.loaded,
+        total: e.total,
+        percent: e.total > 0 ? Math.round((e.loaded / e.total) * 100) : 0,
+      });
+    };
+
+    xhr.onload = function () {
+      var status = xhr.status;
+      var body = null;
+      try {
+        body = JSON.parse(xhr.responseText);
+      } catch (err) {
+        body = null;
+      }
+      if (status >= 200 && status < 300) {
+        applyFieldErrors(form, null);
+        return renderInto(form, cfg, body).then(function () {
+          emit("islands:success", { island: form.dataset.island, data: body });
+        });
+      }
+      if (body && body.field_errors) {
+        applyFieldErrors(form, body.field_errors);
+      }
+      emit("islands:error", {
+        island: form.dataset.island,
+        error: "HTTP " + status,
+        status: status,
+        response: body,
+      });
+    };
+
+    xhr.onerror = function () {
+      emit("islands:error", { island: form.dataset.island, error: "network error" });
+    };
+
+    xhr.send(formData);
+  }
+
   // One capture listener per supported trigger; the root decides.
   ["input", "change", "submit"].forEach(function (trigger) {
     document.addEventListener(
@@ -393,6 +455,54 @@
       true
     );
   });
+
+  // ---- optimistic media previews ------------------------------------------
+  // input[type="file"][data-preview="#selector"]: al elegir archivos, el
+  // runtime crea object URLs (URL.createObjectURL) y muestra una vista
+  // previa instantanea en el contenedor, SIN subir nada todavia. Los URLs
+  // viejos se revocan al elegir de nuevo para no acumular memoria (los que
+  // quedan huerfanos si el target se re-renderiza son el limite conocido).
+  function revokePreviewUrls(input) {
+    (input.__previewUrls || []).forEach(function (url) {
+      URL.revokeObjectURL(url);
+    });
+    input.__previewUrls = [];
+  }
+
+  function appendPreview(input, container, file) {
+    var url = URL.createObjectURL(file);
+    input.__previewUrls.push(url);
+    var el;
+    if (file.type.indexOf("image/") === 0) {
+      el = document.createElement("img");
+      el.src = url;
+    } else if (file.type.indexOf("video/") === 0) {
+      el = document.createElement("video");
+      el.src = url;
+      el.controls = true;
+    } else {
+      URL.revokeObjectURL(url);
+      return;
+    }
+    el.className = "preview-media";
+    container.appendChild(el);
+  }
+
+  document.addEventListener(
+    "change",
+    function (e) {
+      var input = e.target.closest('input[type="file"][data-preview]');
+      if (!input) return;
+      var container = document.querySelector(input.dataset.preview);
+      if (!container) return;
+      revokePreviewUrls(input);
+      container.innerHTML = "";
+      Array.prototype.forEach.call(input.files, function (file) {
+        appendPreview(input, container, file);
+      });
+    },
+    true
+  );
 
   // ---- real-time streams (SSE) -------------------------------------------
   // A page opts in with <div data-stream="name" data-target="#x"></div>.

@@ -5,8 +5,14 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -54,7 +60,9 @@ func main() {
 	// POST /api/posts — form submit (isla new-post): crea el post y devuelve
 	// la lista completa para que el renderer re-renderice el feed. Los errores
 	// de validacion vuelven como field_errors para el binding automatico.
+	// El form puede venir urlencoded (sin archivos) o multipart (con imagen).
 	mux.HandleFunc("POST /api/posts", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseMultipartForm(10 << 20) // 10MB en memoria; el resto a disco temp
 		text := strings.TrimSpace(r.FormValue("text"))
 		if text == "" {
 			w.WriteHeader(http.StatusBadRequest)
@@ -63,7 +71,18 @@ func main() {
 			})
 			return
 		}
-		store.Create(text)
+		image := ""
+		if file, _, err := r.FormFile("image"); err == nil {
+			defer file.Close()
+			if image, err = saveUpload(file); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(map[string]any{
+					"field_errors": map[string]string{"image": "Solo imagenes (png/jpg/gif/webp) de hasta 5MB"},
+				})
+				return
+			}
+		}
+		store.Create(text, image)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(store.Posts())
 	})
@@ -234,4 +253,57 @@ func main() {
 
 	log.Println("templ-islands example en http://localhost:8081")
 	log.Fatal(http.ListenAndServe(":8081", mux))
+}
+
+// maxUploadBytes limita el tamano de las imagenes subidas (5MB).
+const maxUploadBytes = 5 << 20
+
+// saveUpload guarda una imagen subida en static/uploads/ y devuelve su URL
+// publica. Valida el tipo REAL por contenido (http.DetectContentType, no el
+// header del cliente, que es facil de falsear) y el tamano maximo.
+func saveUpload(f multipart.File) (string, error) {
+	head := make([]byte, 512)
+	n, err := f.Read(head)
+	if err != nil && n == 0 {
+		return "", errors.New("archivo vacio")
+	}
+
+	var ext string
+	switch http.DetectContentType(head[:n]) {
+	case "image/png":
+		ext = ".png"
+	case "image/jpeg":
+		ext = ".jpg"
+	case "image/gif":
+		ext = ".gif"
+	case "image/webp":
+		ext = ".webp"
+	default:
+		return "", errors.New("no es una imagen")
+	}
+
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return "", err
+	}
+	if err := os.MkdirAll("static/uploads", 0o755); err != nil {
+		return "", err
+	}
+
+	name := fmt.Sprintf("uploads/%d%s", time.Now().UnixNano(), ext)
+	dst, err := os.Create(filepath.Join("static", name))
+	if err != nil {
+		return "", err
+	}
+	defer dst.Close()
+
+	written, err := io.Copy(dst, io.LimitReader(f, maxUploadBytes+1))
+	if err != nil {
+		os.Remove(dst.Name())
+		return "", err
+	}
+	if written > maxUploadBytes {
+		os.Remove(dst.Name())
+		return "", errors.New("imagen muy grande")
+	}
+	return "/static/" + name, nil
 }

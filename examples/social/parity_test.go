@@ -35,6 +35,7 @@ func TestPostListParity(t *testing.T) {
 	posts := []views.Post{
 		{ID: 1, Text: "Hola mundo", Likes: 7, Liked: false, AuthorID: 1, Following: false},
 		{ID: 2, Text: "Segundo post con <em>HTML</em> & ampersand", Likes: 3, Liked: true, AuthorID: 2, Following: true},
+		{ID: 3, Text: "Post con imagen", Image: "/static/uploads/demo.png", Likes: 1, AuthorID: 3},
 	}
 
 	templHTML := renderTemplPostCards(posts)

@@ -21,6 +21,9 @@ window.islandsRenderers["post-list"] = function (posts) {
         "</button>" +
         "</div>" +
         '<p class="post-text">' + escapeHtml(p.text) + "</p>" +
+        (p.image
+          ? '<img class="post-image" src="' + p.image + '" alt="' + escapeHtml(p.text) + '">'
+          : "") +
         '<div class="post-actions">' +
         '<button class="like-btn' + liked + '" data-island="like" data-key="post-' + p.id + '" data-post-id="' + p.id + '" hx-post="/like/' + p.id + '" hx-swap="outerHTML" hx-disabled-elt="this">' +
         '<span class="label" data-mutate="label">' + likeLabel + "</span> " +

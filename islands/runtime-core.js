@@ -52,6 +52,15 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
     },
+
+    // Un form sube archivos cuando su FormData contiene Blobs (File). Con
+    // archivos el body debe ir como FormData nativo (multipart/form-data);
+    // sin ellos alcanza con URLSearchParams.
+    formHasFiles: function (formData) {
+      return Array.from(formData.values()).some(function (v) {
+        return v instanceof Blob;
+      });
+    },
   };
 
   if (typeof module !== "undefined" && module.exports) {

@@ -160,6 +160,37 @@ islands.WriteSSEID(w, id, map[string]any{"messages": msgs}) // event with id
   ticker.
 - Full design: [`SSE.md`](SSE.md).
 
+### 6. File upload — multipart, progress, optimistic previews
+
+A form with a `<input type="file">` is detected automatically and sent as
+`multipart/form-data` (the browser sets the boundary). Upload progress is
+reported through `islands:progress`, and media can preview instantly before
+uploading with `data-preview`.
+
+```templ
+// @island new-post endpoint=/api/posts method=POST render=/static/post-list.js trigger=submit renderer=post-list
+<form data-island="new-post" data-trigger="submit" data-target="#feed">
+	<input type="text" name="text" required/>
+	<input type="file" name="image" accept="image/*" data-preview="#new-post-previews"/>
+	<div id="new-post-previews"></div>
+	<progress class="upload-progress" max="100" value="0"></progress>
+	<button type="submit">Publicar</button>
+</form>
+```
+
+- **Multipart is automatic:** the runtime checks the `FormData` for files.
+  With files it sends the native `FormData`; without files it keeps the
+  urlencoded `fetch` path.
+- **Progress:** during upload the runtime emits `islands:progress` with
+  `{island, loaded, total, percent}`. Draw the bar yourself — the runtime only
+  emits, the UI is yours.
+- **Optimistic previews:** `data-preview="#sel"` on the file input renders
+  `URL.createObjectURL` into the container as soon as the user picks files
+  (images and videos), before anything reaches the server. Old object URLs are
+  revoked when the user picks again.
+- **Why XHR here?** `fetch` cannot measure upload progress. The runtime uses
+  XHR only for forms with files; everything else stays on `fetch`.
+
 ## Runtime behaviors (cross-cutting)
 
 | Behavior | How |
@@ -167,7 +198,7 @@ islands.WriteSSEID(w, id, map[string]any{"messages": msgs}) // event with id
 | **Fallback** | Islands keep `hx-post`; htmx takes over when the runtime is absent |
 | **Stale responses** | Re-render fetches cancel the previous in-flight request for the same target (`AbortController`); aborts are not errors. Mutations are never cancelled — guarded by disable + `aria-disabled` |
 | **CSRF** | `<meta name="csrf-token">` is sent as `X-CSRF-Token` on mutating requests only, never GET |
-| **Events** | `islands:success` / `islands:error` dispatched on `document` — listen and show toasts |
+| **Events** | `islands:success` / `islands:error` dispatched on `document` — listen and show toasts; `islands:progress` (`{loaded,total,percent}`) during file uploads |
 | **Selector validation** | `templ-islands generate` fails with a clear error if a declared `data-mutate` selector does not exist in the template |
 
 ## Server-side API (`islands` package)

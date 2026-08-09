@@ -69,3 +69,19 @@ test("escapeHtml escapa HTML", () => {
   assert.strictEqual(core.escapeHtml('<b>&"'), "&lt;b&gt;&amp;&quot;");
   assert.strictEqual(core.escapeHtml("texto normal"), "texto normal");
 });
+
+test("formHasFiles detecta archivos en el FormData", () => {
+  const fd = new FormData();
+  fd.append("message", "hola");
+  assert.strictEqual(core.formHasFiles(fd), false);
+
+  fd.append("image", new File(["bytes"], "foto.png", { type: "image/png" }));
+  assert.strictEqual(core.formHasFiles(fd), true);
+});
+
+test("formHasFiles es false con un input file vacio", () => {
+  const fd = new FormData();
+  fd.append("message", "hola");
+  // un input file sin seleccionar no agrega entradas al FormData
+  assert.strictEqual(core.formHasFiles(fd), false);
+});

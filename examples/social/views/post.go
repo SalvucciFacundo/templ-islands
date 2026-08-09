@@ -5,6 +5,7 @@ package views
 type Post struct {
 	ID        int    `json:"id"`
 	Text      string `json:"text"`
+	Image     string `json:"image"`
 	Likes     int    `json:"likes"`
 	Liked     bool   `json:"liked"`
 	AuthorID  int    `json:"author_id"`

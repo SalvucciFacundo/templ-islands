@@ -1,6 +1,6 @@
 package views
 
-// @island new-post endpoint=/api/posts method=POST render=/static/post-list.js trigger=submit
+// @island new-post endpoint=/api/posts method=POST render=/static/post-list.js trigger=submit renderer=post-list
 templ NewPostForm() {
 	<form
 		class="new-post"
@@ -9,7 +9,18 @@ templ NewPostForm() {
 		data-target="#feed"
 	>
 		<input type="text" name="text" placeholder="Escribi un post..." required/>
+		// Vista previa optimista: el runtime crea object URLs (data-preview)
+		// al elegir el archivo, sin subir nada todavia.
+		<div id="new-post-previews" class="previews"></div>
+		<label class="upload-label">
+			Subir imagen
+			<input type="file" name="image" accept="image/*" data-preview="#new-post-previews"/>
+		</label>
+		// Barra de progreso real: upload-status.js la llena desde los eventos
+		// islands:progress que emite el runtime durante la subida.
+		<progress class="upload-progress" max="100" value="0"></progress>
 		<button type="submit">Publicar</button>
 		<span class="field-error" data-error-for="text"></span>
+		<span class="field-error" data-error-for="image"></span>
 	</form>
 }
