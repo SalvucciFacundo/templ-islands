@@ -14,9 +14,16 @@ con prioridades.
 
 ## Prioridad media
 
-- [ ] **Adapter Datastar**: el fallback server-driven está hardcodeado a htmx
-      (`hx-post`). El core es agnóstico; falta un helper de templ que emita los
-      atributos `data-*` de Datastar según el adapter elegido.
+- [ ] **Adapter Datastar** (explorado — suposición del item corregida): el fallback
+      server-driven está hardcodeado a htmx (`hx-post`). El core es agnóstico.
+      Hallazgos: (1) los `hx-*` viven en el markup del ejemplo, no en la librería;
+      (2) en Datastar v1 los `data-*` NO colisionan con los del runtime
+      (data-island/data-key/data-target no existen en Datastar; tiene aliasing
+      `data-star-*` y `data-ignore` para coexistir); (3) el problema REAL no es
+      emitir atributos sino el contrato de respuesta del server: htmx swappea
+      fragmentos, Datastar morphea por ID o espera SSE `datastar-patch-elements`
+      (SDK Go oficial: starfederation/datastar-go). Un helper de atributos solo
+      NO alcanza: cada handler tendría que responder distinto según el modo.
 - [ ] **Fallback sin JS (nivel 2)**: envolver los botones en `<form method="POST">`
       clásico para que funcionen con JavaScript 100% apagado (nicho <1%).
 - [ ] **Tabs/paneles**: cambiar de pestaña sin recargar (re-render de un contenedor
