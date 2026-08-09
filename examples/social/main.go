@@ -119,6 +119,34 @@ func main() {
 		json.NewEncoder(w).Encode(map[string]any{"following": post.Following})
 	})
 
+	// GET /api/comments/{post_id} — datos para la isla comments (click -> re-render).
+	mux.HandleFunc("GET /api/comments/{post_id}", func(w http.ResponseWriter, r *http.Request) {
+		postID, err := strconv.Atoi(r.PathValue("post_id"))
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(store.Comments(postID))
+	})
+
+	// POST /api/delete_comment/{id} — elimina (data-confirm) y devuelve la
+	// lista actualizada del post para re-renderizar.
+	mux.HandleFunc("POST /api/delete_comment/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(r.PathValue("id"))
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		comments, ok := store.DeleteComment(id)
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(comments)
+	})
+
 	log.Println("templ-islands example en http://localhost:8081")
 	log.Fatal(http.ListenAndServe(":8081", mux))
 }

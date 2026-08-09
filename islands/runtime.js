@@ -112,10 +112,21 @@
       var root = e.target.closest("[data-island]");
       if (!root || !manifest) return;
       var cfg = manifest[root.dataset.island];
-      if (!cfg || cfg.render) return; // re-render islands are not click-driven
+      if (!cfg) return;
 
       e.preventDefault();
       e.stopPropagation();
+
+      // Destructive actions ask first (data-confirm="Are you sure?").
+      if (root.dataset.confirm && !window.confirm(root.dataset.confirm)) {
+        return;
+      }
+
+      // click -> re-render (expand comments, refresh a panel).
+      if (cfg.render) {
+        reRenderClick(root, cfg);
+        return;
+      }
 
       var roots = instancesFor(root);
       var prev = [];
@@ -184,22 +195,44 @@
 
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(function () {
-      fetch(url, { method: cfg.method || "GET" })
-        .then(function (res) {
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          return res.json();
-        })
+      fetchData(url, cfg)
         .then(function (data) {
           return renderInto(root, cfg, data);
         })
         .then(function () {
-          emit("islands:success", { island: root.dataset.island });
-        })
-        .catch(function (err) {
-          // keep the previous render
-          emit("islands:error", { island: root.dataset.island, error: String(err && err.message || err) });
+          emitSuccess(root);
+        }, function (err) {
+          emitError(root, err);
         });
     }, 300);
+  }
+
+  // click: fetch with {placeholder} tokens filled from data-* attributes.
+  function reRenderClick(root, cfg) {
+    fetchData(fillPlaceholders(cfg.endpoint, root), cfg)
+      .then(function (data) {
+        return renderInto(root, cfg, data);
+      })
+      .then(function () {
+        emitSuccess(root);
+      }, function (err) {
+        emitError(root, err);
+      });
+  }
+
+  function fetchData(url, cfg) {
+    return fetch(url, { method: cfg.method || "GET" }).then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    });
+  }
+
+  function emitSuccess(root) {
+    emit("islands:success", { island: root.dataset.island });
+  }
+
+  function emitError(root, err) {
+    emit("islands:error", { island: root.dataset.island, error: String(err && err.message || err) });
   }
 
   // submit: POST the form data, re-render the target with the response.

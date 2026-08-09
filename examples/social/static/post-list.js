@@ -27,6 +27,10 @@ window.islandsRenderers["post-list"] = function (posts) {
         '<span class="count" data-mutate="likes">' + p.likes + "</span>" +
         "</button>" +
         "</div>" +
+        '<div class="comments">' +
+        '<button class="comments-toggle" data-island="comments" data-trigger="click" data-post-id="' + p.id + '" data-target="#comments-' + p.id + '">Ver comentarios</button>' +
+        '<div id="comments-' + p.id + '" class="comments-box"></div>' +
+        "</div>" +
         "</div>"
       );
     })

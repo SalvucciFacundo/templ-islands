@@ -1,7 +1,12 @@
 package views
 
-// PostCard renders one post. The JS renderer (static/post-list.js) must
-// produce IDENTICAL markup — the parity test enforces this.
+import (
+	"fmt"
+	"strconv"
+)
+
+// @island comments endpoint=/api/comments/{post_id} method=GET render=/static/comments.js trigger=click
+// @island delete-comment endpoint=/api/delete_comment/{comment_id} method=POST render=/static/comments.js trigger=click
 templ PostCard(p Post) {
 	<div class="post">
 		<div class="post-header">
@@ -11,6 +16,18 @@ templ PostCard(p Post) {
 		<p class="post-text">{ p.Text }</p>
 		<div class="post-actions">
 			@LikeButton(p)
+		</div>
+		<div class="comments">
+			<button
+				class="comments-toggle"
+				data-island="comments"
+				data-trigger="click"
+				data-post-id={ strconv.Itoa(p.ID) }
+				data-target={ fmt.Sprintf("#comments-%d", p.ID) }
+			>
+				Ver comentarios
+			</button>
+			<div id={ fmt.Sprintf("comments-%d", p.ID) } class="comments-box"></div>
 		</div>
 	</div>
 }
