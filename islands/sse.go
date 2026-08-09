@@ -3,6 +3,7 @@ package islands
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"net/http"
 )
 
@@ -32,4 +33,22 @@ func WriteSSE(w http.ResponseWriter, data any) error {
 		f.Flush()
 	}
 	return nil
+}
+
+// WriteSSERetry emite el campo retry: con jitter para que una reconexion
+// masiva (thundering herd) no golpee al servidor en el mismo segundo.
+// El valor es base + [0, jitter) milisegundos. Llamalo una vez al abrir el
+// stream, antes del primer evento:
+//
+//	islands.SSEHeaders(w)
+//	islands.WriteSSERetry(w, 3000, 2000)
+func WriteSSERetry(w http.ResponseWriter, base, jitter int) {
+	ms := base
+	if jitter > 0 {
+		ms += rand.IntN(jitter)
+	}
+	fmt.Fprintf(w, "retry: %d\n\n", ms)
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
 }

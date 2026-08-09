@@ -1,6 +1,7 @@
 package islands
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -42,5 +43,29 @@ func TestWriteSSEOnResponseWriter(t *testing.T) {
 	}
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d", rec.Code)
+	}
+}
+
+func TestWriteSSERetryWithinJitterRange(t *testing.T) {
+	rec := httptest.NewRecorder()
+	WriteSSERetry(rec, 3000, 2000)
+	body := rec.Body.String()
+	if !strings.HasPrefix(body, "retry: ") || !strings.HasSuffix(body, "\n\n") {
+		t.Fatalf("formato retry invalido: %q", body)
+	}
+	var ms int
+	if _, err := fmt.Sscanf(strings.TrimPrefix(body, "retry: "), "%d", &ms); err != nil {
+		t.Fatalf("no parsea el retry: %q", body)
+	}
+	if ms < 3000 || ms >= 5000 {
+		t.Fatalf("retry = %d, fuera del rango [3000, 5000)", ms)
+	}
+}
+
+func TestWriteSSERetryWithoutJitter(t *testing.T) {
+	rec := httptest.NewRecorder()
+	WriteSSERetry(rec, 1000, 0)
+	if !strings.Contains(rec.Body.String(), "retry: 1000") {
+		t.Fatalf("retry sin jitter debe ser fijo: %q", rec.Body.String())
 	}
 }

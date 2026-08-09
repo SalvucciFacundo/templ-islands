@@ -54,6 +54,11 @@ matching `[name="email"]` input, and clears both on the next submit.
 an island and the renderer output is inserted instead of replacing the target —
 for chat deltas, feeds and infinite scroll.
 
+**Stale-response protection:** re-render fetches (input/change/click) cancel
+the previous in-flight request for the same target via `AbortController`, so a
+slow stale response never overwrites newer data. Mutations are not cancelled —
+they are guarded by disabling the element while pending (with `aria-disabled`).
+
 **CSRF:** if the page declares `<meta name="csrf-token" content="...">`, the
 runtime sends it as `X-CSRF-Token` on every mutating request (POST/PUT/DELETE),
 never on GET.

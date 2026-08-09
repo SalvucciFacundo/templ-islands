@@ -185,6 +185,8 @@ func main() {
 	// al conectar y despues cada evento que difunde el broker.
 	mux.HandleFunc("GET /events/chat", func(w http.ResponseWriter, r *http.Request) {
 		islands.SSEHeaders(w)
+		// Reconexion con jitter: mil clientes caidos no vuelven al mismo segundo.
+		islands.WriteSSERetry(w, 3000, 2000)
 		ch := broker.Subscribe()
 		defer broker.Unsubscribe(ch)
 

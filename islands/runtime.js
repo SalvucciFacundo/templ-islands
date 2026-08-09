@@ -149,6 +149,7 @@
       });
       roots.forEach(function (r) {
         r.disabled = true;
+        r.setAttribute("aria-disabled", "true");
       });
 
       fetch(fillPlaceholders(cfg.endpoint, root), { method: cfg.method || "POST", headers: csrfHeaders(cfg.method) })
@@ -169,6 +170,7 @@
         .finally(function () {
           roots.forEach(function (r) {
             r.disabled = false;
+            r.removeAttribute("aria-disabled");
           });
         });
     },
@@ -179,6 +181,7 @@
 
   var rendererCache = {};
   var debounceTimer = null;
+  var abortControllers = {};
 
   function loadRenderer(url) {
     if (rendererCache[url]) return Promise.resolve();
@@ -213,6 +216,27 @@
   }
 
   // input / change: debounced fetch with the control value as data-param.
+  // AbortController cancels the previous in-flight request for the same
+  // target, so a slow stale response can never overwrite newer data.
+  function abortPending(target) {
+    if (abortControllers[target]) {
+      abortControllers[target].abort();
+      delete abortControllers[target];
+    }
+  }
+
+  function trackFetch(target, url, cfg, then, fail) {
+    abortPending(target);
+    var controller = new AbortController();
+    abortControllers[target] = controller;
+    fetchData(url, cfg, controller.signal).then(then, function (err) {
+      if (err && err.name === "AbortError") return; // esperado: reemplazado
+      fail(err);
+    }).finally(function () {
+      if (abortControllers[target] === controller) delete abortControllers[target];
+    });
+  }
+
   function reRender(root, cfg) {
     var param = root.dataset.param || "q";
     var sep = cfg.endpoint.indexOf("?") >= 0 ? "&" : "?";
@@ -220,33 +244,29 @@
 
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(function () {
-      fetchData(url, cfg)
-        .then(function (data) {
-          return renderInto(root, cfg, data);
-        })
-        .then(function () {
+      trackFetch(root.dataset.target, url, cfg, function (data) {
+        return renderInto(root, cfg, data).then(function () {
           emitSuccess(root);
-        }, function (err) {
-          emitError(root, err);
         });
+      }, function (err) {
+        emitError(root, err);
+      });
     }, 300);
   }
 
   // click: fetch with {placeholder} tokens filled from data-* attributes.
   function reRenderClick(root, cfg) {
-    fetchData(fillPlaceholders(cfg.endpoint, root), cfg)
-      .then(function (data) {
-        return renderInto(root, cfg, data);
-      })
-      .then(function () {
+    trackFetch(root.dataset.target, fillPlaceholders(cfg.endpoint, root), cfg, function (data) {
+      return renderInto(root, cfg, data).then(function () {
         emitSuccess(root);
-      }, function (err) {
-        emitError(root, err);
       });
+    }, function (err) {
+      emitError(root, err);
+    });
   }
 
-  function fetchData(url, cfg) {
-    return fetch(url, { method: cfg.method || "GET", headers: csrfHeaders(cfg.method) }).then(function (res) {
+  function fetchData(url, cfg, signal) {
+    return fetch(url, { method: cfg.method || "GET", headers: csrfHeaders(cfg.method), signal: signal }).then(function (res) {
       if (!res.ok) throw new Error("HTTP " + res.status);
       return res.json();
     });

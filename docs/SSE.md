@@ -131,8 +131,18 @@ hub conecta el agente con los suscriptores SSE.
    en BACKLOG** (necesita la operación `append` del runtime).
 2. **Opt-in por página.** El stream solo se abre si hay `[data-stream]` en el
    DOM — coherente con el resto de la librería.
-3. **Reconexión nativa** de `EventSource`; el server controla el retry con el
-   campo `retry:`.
+3. **Reconexión nativa** de `EventSource`; el servidor controla el retry con el
+   campo `retry:`. Para evitar el thundering herd (mil clientes caidos que
+   reconectan al mismo segundo), el servidor emite `retry:` con jitter usando
+   el helper:
+
+   ```go
+   islands.SSEHeaders(w)
+   islands.WriteSSERetry(w, 3000, 2000) // 3000 + [0, 2000) ms aleatorios
+   ```
+
+   El runtime NO reimplementa backoff: el `EventSource` respeta el `retry:` del
+   servidor, que es donde se controla el jitter.
 4. **SSE unidireccional.** El envío del usuario sigue siendo form submit (POST).
 5. El evento que llega puede traer **cualquier JSON** que el renderer sepa
    interpretar; el renderer es la fuente de la forma del DOM (mismo patrón que
