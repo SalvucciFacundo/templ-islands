@@ -207,12 +207,14 @@
   // Renderers may return a list or a single item. By default the target is
   // replaced; with data-swap="append"|"prepend" the HTML is inserted instead
   // (useful for chat/feed deltas and infinite scroll).
-  function renderInto(root, cfg, data) {
+  function renderInto(root, cfg, data, islandName) {
     var target = document.querySelector(root.dataset.target);
     return loadRenderer(cfg.render).then(function () {
       // cfg.renderer reusa el renderer registrado bajo OTRA isla
       // (ej: "post-more" renderiza con el renderer de "post-list").
-      var rendererName = cfg.renderer || root.dataset.island;
+      // islandName es el nombre explicito para roots sin data-island
+      // (los streams usan data-stream; ej: chat-stream).
+      var rendererName = cfg.renderer || islandName || root.dataset.island;
       var renderer = window.islandsRenderers && window.islandsRenderers[rendererName];
       if (!renderer) throw new Error("renderer not found for " + rendererName);
       if (!target) return;
@@ -454,7 +456,7 @@
         } catch (err) {
           return;
         }
-        renderInto(root, cfg, data).then(function () {
+        renderInto(root, cfg, data, name).then(function () {
           emit("islands:success", { island: name, stream: true });
         }, function (err) {
           emit("islands:error", { island: name, stream: true, error: String(err && err.message || err) });
