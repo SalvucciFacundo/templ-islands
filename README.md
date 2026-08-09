@@ -1,5 +1,7 @@
 # templ-islands
 
+![templ-islands banner](docs/assets/banner.jpg)
+
 Same templ component, rendered server-side or hydrated client-side under Go — with the server deciding per component, and a generic runtime handling optimistic UI.
 
 ## What it solves
@@ -42,6 +44,19 @@ the feed and in a modal).
 **Error feedback:** every failure emits `islands:error` on `document` with
 `{ island, error, status?, response? }` — listen and show a toast. Success
 emits `islands:success` with `{ island, data? }`.
+
+**Field errors (forms):** a non-2xx response with
+`{"field_errors": {"email": "Email invalido"}}` is bound automatically: the
+runtime fills every `[data-error-for="email"]` element, adds `.invalid` to the
+matching `[name="email"]` input, and clears both on the next submit.
+
+**Insert mode (append/prepend):** add `data-swap="append"` (or `"prepend"`) to
+an island and the renderer output is inserted instead of replacing the target —
+for chat deltas, feeds and infinite scroll.
+
+**CSRF:** if the page declares `<meta name="csrf-token" content="...">`, the
+runtime sends it as `X-CSRF-Token` on every mutating request (POST/PUT/DELETE),
+never on GET.
 
 ## Usage
 
@@ -102,6 +117,43 @@ list). On validation errors it can return a non-2xx JSON body — the runtime
 emits `islands:error` with the `response` so your app can show the errors.
 
 ## Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client ["Browser (Client Runtime)"]
+        SSR["Initial HTML (Server-Side rendered with templ)"]
+        Hydration["Generic Runtime (islands/runtime.js)"]
+        
+        subgraph Capabilities ["Island Capabilities"]
+            Mut["1. Mutation (click)<br/>• Instant optimistic UI update<br/>• Rollback on server error"]
+            Ren["2. Re-render (input/change/click)<br/>• Fetch JSON + local JS re-render"]
+            Form["3. Form Submit (submit)<br/>• Async POST + success/error events"]
+            Stream["4. Stream SSE (real-time)<br/>• EventSource + automatic re-render"]
+        end
+
+        FallbackDecision{"Is JS Runtime active?"}
+        HTMX["htmx Fallback (hx-post)<br/>Server-driven HTML swap"]
+    end
+
+    subgraph Server ["Server (Go + templ-islands)"]
+        Registry["Go Registry & Manifest (/islands/)"]
+        JSONAPI["JSON Endpoints (/api/...)"]
+        HTMLBackend["HTML Endpoints / Fallback"]
+    end
+
+    SSR --> Hydration
+    Hydration --> FallbackDecision
+
+    FallbackDecision -- "No (JS Disabled/Error)" --> HTMX
+    HTMX -->|HTML Request| HTMLBackend
+
+    FallbackDecision -- "Yes" --> Capabilities
+    
+    Mut <-->|Sync JSON / Patch| JSONAPI
+    Ren <-->|Fetch JSON| JSONAPI
+    Form <-->|POST Form Data| JSONAPI
+    Stream <---|EventSource push| JSONAPI
+```
 
 ```
 templ-islands/

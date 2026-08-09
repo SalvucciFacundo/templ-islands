@@ -45,12 +45,15 @@ func main() {
 	})
 
 	// POST /api/posts — form submit (isla new-post): crea el post y devuelve
-	// la lista completa para que el renderer re-renderice el feed.
+	// la lista completa para que el renderer re-renderice el feed. Los errores
+	// de validacion vuelven como field_errors para el binding automatico.
 	mux.HandleFunc("POST /api/posts", func(w http.ResponseWriter, r *http.Request) {
 		text := strings.TrimSpace(r.FormValue("text"))
 		if text == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]any{"error": "texto vacio"})
+			json.NewEncoder(w).Encode(map[string]any{
+				"field_errors": map[string]string{"text": "El texto no puede estar vacio"},
+			})
 			return
 		}
 		store.Create(text)

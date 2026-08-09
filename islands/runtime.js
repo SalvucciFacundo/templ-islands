@@ -20,6 +20,20 @@
 
   var manifest = null;
 
+  // CSRF: si la pagina declara <meta name="csrf-token" content="...">, el
+  // runtime lo manda como X-CSRF-Token en las peticiones que mutan.
+  var csrfToken = (function () {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute("content") : null;
+  })();
+
+  function csrfHeaders(method) {
+    if (!csrfToken) return {};
+    var m = (method || "GET").toUpperCase();
+    if (m === "GET" || m === "HEAD" || m === "OPTIONS") return {};
+    return { "X-CSRF-Token": csrfToken };
+  }
+
   function loadManifest() {
     // The manifest URL is derived from this script's own URL, so the runtime
     // works no matter where it is mounted.
@@ -137,7 +151,7 @@
         r.disabled = true;
       });
 
-      fetch(fillPlaceholders(cfg.endpoint, root), { method: cfg.method || "POST" })
+      fetch(fillPlaceholders(cfg.endpoint, root), { method: cfg.method || "POST", headers: csrfHeaders(cfg.method) })
         .then(function (res) {
           if (!res.ok) throw new Error("HTTP " + res.status);
           return res.json();
@@ -178,12 +192,23 @@
     });
   }
 
+  // Renderers may return a list or a single item. By default the target is
+  // replaced; with data-swap="append"|"prepend" the HTML is inserted instead
+  // (useful for chat/feed deltas and infinite scroll).
   function renderInto(root, cfg, data) {
     var target = document.querySelector(root.dataset.target);
     return loadRenderer(cfg.render).then(function () {
       var renderer = window.islandsRenderers && window.islandsRenderers[root.dataset.island];
       if (!renderer) throw new Error("renderer not found for " + root.dataset.island);
-      if (target) target.innerHTML = renderer(data);
+      if (!target) return;
+      var html = renderer(data);
+      if (root.dataset.swap === "append") {
+        target.insertAdjacentHTML("beforeend", html);
+      } else if (root.dataset.swap === "prepend") {
+        target.insertAdjacentHTML("afterbegin", html);
+      } else {
+        target.innerHTML = html;
+      }
     });
   }
 
@@ -221,7 +246,7 @@
   }
 
   function fetchData(url, cfg) {
-    return fetch(url, { method: cfg.method || "GET" }).then(function (res) {
+    return fetch(url, { method: cfg.method || "GET", headers: csrfHeaders(cfg.method) }).then(function (res) {
       if (!res.ok) throw new Error("HTTP " + res.status);
       return res.json();
     });
@@ -235,10 +260,33 @@
     emit("islands:error", { island: root.dataset.island, error: String(err && err.message || err) });
   }
 
+  // Field errors: the server answers a non-2xx JSON body with
+  // {"field_errors": {"email": "Email invalido"}}. The runtime maps each
+  // field to [data-error-for="<field>"] elements and marks the inputs.
+  function applyFieldErrors(root, fieldErrors) {
+    root.querySelectorAll("[data-error-for]").forEach(function (el) {
+      el.textContent = "";
+      el.classList.remove("show");
+    });
+    root.querySelectorAll("input.invalid, select.invalid, textarea.invalid").forEach(function (el) {
+      el.classList.remove("invalid");
+    });
+    Object.keys(fieldErrors || {}).forEach(function (field) {
+      var msg = fieldErrors[field];
+      var target = root.querySelector('[data-error-for="' + field + '"]');
+      if (target) {
+        target.textContent = msg;
+        target.classList.add("show");
+      }
+      var input = root.querySelector('[name="' + field + '"]');
+      if (input) input.classList.add("invalid");
+    });
+  }
+
   // submit: POST the form data, re-render the target with the response.
   function submitForm(form, cfg) {
     var body = new URLSearchParams(new FormData(form));
-    fetch(cfg.endpoint, { method: cfg.method || "POST", body: body })
+    fetch(cfg.endpoint, { method: cfg.method || "POST", headers: csrfHeaders(cfg.method), body: body })
       .then(function (res) {
         if (!res.ok) {
           return res.json().catch(function () {
@@ -250,11 +298,15 @@
         return res.json();
       })
       .then(function (data) {
+        applyFieldErrors(form, null); // limpiar errores viejos en exito
         return renderInto(form, cfg, data).then(function () {
           emit("islands:success", { island: form.dataset.island, data: data });
         });
       })
       .catch(function (err) {
+        if (err.response && err.response.field_errors) {
+          applyFieldErrors(form, err.response.field_errors);
+        }
         emit("islands:error", {
           island: form.dataset.island,
           error: String(err && err.message || err),
