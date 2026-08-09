@@ -16,6 +16,7 @@ type IslandSpec struct {
 	Method   string
 	Render   string
 	Trigger  string
+	Stream   bool
 	Fields   []FieldSpec
 }
 
@@ -138,7 +139,8 @@ func dataMutateFromSelector(selector string) (string, bool) {
 }
 
 // parseIsland parses: // @island <name> key=value...
-// Keys: endpoint, method (mutacion) | render, trigger (re-render).
+// Keys: endpoint, method (mutacion) | render, trigger (re-render) |
+// stream=true (real-time SSE).
 func parseIsland(line string) (IslandSpec, error) {
 	tokens := strings.Fields(line)
 	if len(tokens) < 3 {
@@ -159,10 +161,19 @@ func parseIsland(line string) (IslandSpec, error) {
 			spec.Render = v
 		case "trigger":
 			spec.Trigger = v
+		case "stream":
+			spec.Stream = v == "true"
 		}
 	}
 	if spec.Endpoint == "" {
 		return IslandSpec{}, fmt.Errorf("isla %q: falta endpoint=", spec.Name)
+	}
+	if spec.Stream {
+		if spec.Render == "" {
+			return IslandSpec{}, fmt.Errorf("isla %q: stream=true sin render=", spec.Name)
+		}
+		spec.Method = "GET"
+		return spec, nil
 	}
 	if spec.Render != "" && spec.Trigger == "" {
 		return IslandSpec{}, fmt.Errorf("isla %q: render= sin trigger=", spec.Name)

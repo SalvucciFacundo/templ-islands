@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/SalvucciFacundo/templ-islands/examples/social/views"
 	"github.com/SalvucciFacundo/templ-islands/islands"
@@ -16,6 +17,7 @@ import (
 
 func main() {
 	store := NewStore()
+	broker := NewBroker()
 
 	// El contrato vive en el .templ (// @island + // @field).
 	// templ-islands generate escanea las directivas y genera RegisterIslands.
@@ -145,6 +147,55 @@ func main() {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(comments)
+	})
+
+	// GET /chat — el chat con el agente (form submit + stream SSE).
+	mux.HandleFunc("GET /chat", func(w http.ResponseWriter, r *http.Request) {
+		views.Layout("Demo Social — Chat", views.ChatPage()).Render(r.Context(), w)
+	})
+
+	// POST /api/chat — form submit de la isla chat-form: agrega el mensaje y
+	// difunde; el agente "responde" solo (simulado) y eso llega por SSE.
+	mux.HandleFunc("POST /api/chat", func(w http.ResponseWriter, r *http.Request) {
+		text := strings.TrimSpace(r.FormValue("message"))
+		if text == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]any{"error": "mensaje vacio"})
+			return
+		}
+		store.AddChatMessage("user", text)
+		broker.Publish(map[string]any{"messages": store.ChatMessages()})
+
+		// El agente responde SOLO (simulado): llega por SSE sin que el
+		// usuario haga nada — el problema 3 del diseño.
+		go func(replyTo string) {
+			time.Sleep(600 * time.Millisecond)
+			store.AddChatMessage("agent", "Procesado: "+replyTo)
+			broker.Publish(map[string]any{"messages": store.ChatMessages()})
+		}(text)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"messages": store.ChatMessages()})
+	})
+
+	// GET /events/chat — stream SSE de la isla chat-stream: envia el estado
+	// al conectar y despues cada evento que difunde el broker.
+	mux.HandleFunc("GET /events/chat", func(w http.ResponseWriter, r *http.Request) {
+		islands.SSEHeaders(w)
+		ch := broker.Subscribe()
+		defer broker.Unsubscribe(ch)
+
+		islands.WriteSSE(w, map[string]any{"messages": store.ChatMessages()})
+		for {
+			select {
+			case <-r.Context().Done():
+				return
+			case msg := <-ch:
+				if err := islands.WriteSSE(w, msg); err != nil {
+					return
+				}
+			}
+		}
 	})
 
 	log.Println("templ-islands example en http://localhost:8081")

@@ -60,6 +60,9 @@ type Island struct {
 	Render string
 	// Trigger is the DOM event that fires the re-render (e.g. "input").
 	Trigger string
+	// Stream marks a real-time island: the runtime opens an EventSource to
+	// Endpoint and re-renders the target whenever the server emits an event.
+	Stream bool
 }
 
 // Registry holds all registered islands and is the single source of truth.
@@ -71,6 +74,21 @@ type Registry struct {
 // New creates an empty registry.
 func New() *Registry {
 	return &Registry{isles: make(map[string]Island)}
+}
+
+// RegisterStream adds a real-time island: the runtime subscribes to Endpoint
+// via SSE and re-renders the target with the JS renderer at render on every
+// event the server emits. See docs/SSE.md for the full design.
+func (r *Registry) RegisterStream(name, endpoint, render string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.isles[name] = Island{
+		Name:     name,
+		Endpoint: endpoint,
+		Method:   "GET",
+		Render:   render,
+		Stream:   true,
+	}
 }
 
 // Register adds an island under name.
@@ -139,6 +157,7 @@ type manifestIsland struct {
 	Fields   []manifestField `json:"fields,omitempty"`
 	Render   string          `json:"render,omitempty"`
 	Trigger  string          `json:"trigger,omitempty"`
+	Stream   bool            `json:"stream,omitempty"`
 }
 
 // Manifest returns the JSON-serializable view of the registry.
@@ -165,6 +184,7 @@ func (r *Registry) Manifest() map[string]manifestIsland {
 			Fields:   fields,
 			Render:   i.Render,
 			Trigger:  i.Trigger,
+			Stream:   i.Stream,
 		}
 	}
 	return out

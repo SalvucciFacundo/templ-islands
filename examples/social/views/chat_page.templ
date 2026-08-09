@@ -1,0 +1,19 @@
+package views
+
+// @island chat-form endpoint=/api/chat method=POST render=/static/chat-renderer.js trigger=submit
+// @island chat-stream endpoint=/events/chat stream=true render=/static/chat-renderer.js
+templ ChatPage() {
+	<div class="chat">
+		<div id="chat-messages" class="chat-messages"></div>
+		<form
+			class="chat-form"
+			data-island="chat-form"
+			data-trigger="submit"
+			data-target="#chat-messages"
+		>
+			<input type="text" name="message" placeholder="Mensaje para el agente..." required/>
+			<button type="submit">Enviar</button>
+		</form>
+		<div data-stream="chat-stream" data-target="#chat-messages"></div>
+	</div>
+}

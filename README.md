@@ -20,12 +20,20 @@ The demo validated this with real numbers: server-driven re-rendered the button 
 | Capability | Trigger | What the client runtime does |
 |------------|---------|------------------------------|
 | **Mutation** (like, follow, counters) | `click` | Applies declared optimistic ops instantly, syncs with a JSON endpoint, applies the server response (source of truth) or rolls back on error. |
-| **Re-render** (lists, filters, search) | `input` or `change` | Fetches JSON from the endpoint, loads the island's JS renderer and re-renders the target container locally. |
+| **Re-render** (lists, filters, search) | `input`, `change` or `click` | Fetches JSON from the endpoint, loads the island's JS renderer and re-renders the target container locally. |
 | **Form submit** (create/edit, checkout) | `submit` | POSTs the form data, re-renders the target with the response and emits `islands:success` / `islands:error`. |
+| **Stream (SSE)** (live chat, agent status, tasks) | server events | Opens an `EventSource` to the endpoint and re-renders the target whenever the server emits an event. |
 
 All capabilities share one generic runtime (`islands/runtime.js`, embedded in the
 binary) driven by a manifest generated from the Go registry. Adding an island
 never requires touching the JS.
+
+**Streams (real time):** the page opts in with
+`<div data-stream="chat" data-target="#chat"></div>`; the server pushes JSON
+events with the `SSEHeaders`/`WriteSSE` helpers (or your own SSE endpoint) and
+the runtime re-renders the target with the island's renderer. This covers live
+chat, agent status and task feeds. See [`docs/SSE.md`](docs/SSE.md) for the
+design and the example chat in `examples/social`.
 
 **Shared domain keys:** add `data-key="post-1"` to an island and the mutation
 applies to every instance with the same key on the page (e.g. the same post in

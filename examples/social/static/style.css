@@ -222,3 +222,90 @@ h1 {
   font-size: 0.85rem;
   margin: 0.25rem 0;
 }
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.nav a {
+  color: #6366f1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+}
+
+.chat {
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.chat-messages {
+  min-height: 200px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.chat-msg {
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  max-width: 85%;
+}
+
+.chat-msg.user {
+  align-self: flex-end;
+  background: #4f46e5;
+  color: #fff;
+}
+
+.chat-msg.agent {
+  align-self: flex-start;
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+.chat-who {
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.chat-empty {
+  color: #a1a1aa;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.chat-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-form input {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 1px solid #d4d4d8;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
+.chat-form button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 12px;
+  background: #4f46e5;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}

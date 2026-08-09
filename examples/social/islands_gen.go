@@ -6,6 +6,8 @@ import "github.com/SalvucciFacundo/templ-islands/islands"
 
 // RegisterIslands registra las islas declaradas con // @island en los .templ.
 func RegisterIslands(reg *islands.Registry) {
+	reg.RegisterRender("chat-form", "/api/chat", "POST", "/static/chat-renderer.js", "submit")
+	reg.RegisterStream("chat-stream", "/events/chat", "/static/chat-renderer.js")
 	reg.Register("follow",
 		[]islands.Field{
 			{

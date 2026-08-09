@@ -58,7 +58,9 @@ import "github.com/SalvucciFacundo/templ-islands/islands"
 // RegisterIslands registra las islas declaradas con // @island en los .templ.
 func RegisterIslands(reg *islands.Registry) {
 {{- range .Islands }}
-{{- if .Render }}
+{{- if .Stream }}
+	reg.RegisterStream("{{ .Name }}", "{{ .Endpoint }}", "{{ .Render }}")
+{{- else if .Render }}
 	reg.RegisterRender("{{ .Name }}", "{{ .Endpoint }}", "{{ .Method }}", "{{ .Render }}", "{{ .Trigger }}")
 {{- else }}
 	reg.Register("{{ .Name }}",

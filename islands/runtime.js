@@ -287,7 +287,44 @@
     );
   });
 
-  loadManifest().catch(function () {
+  // ---- real-time streams (SSE) -------------------------------------------
+  // A page opts in with <div data-stream="name" data-target="#x"></div>.
+  // The runtime opens an EventSource to the island endpoint and re-renders
+  // the target with the island's renderer on every event.
+  function startStreams() {
+    var roots = document.querySelectorAll("[data-stream]");
+    if (!roots.length) return;
+    Array.prototype.forEach.call(roots, function (root) {
+      var name = root.dataset.stream;
+      var cfg = manifest[name];
+      if (!cfg || !cfg.stream) return;
+
+      var es = new EventSource(cfg.endpoint);
+      es.onmessage = function (e) {
+        var data;
+        try {
+          data = JSON.parse(e.data);
+        } catch (err) {
+          return;
+        }
+        renderInto(root, cfg, data).then(function () {
+          emit("islands:success", { island: name, stream: true });
+        }, function (err) {
+          emit("islands:error", { island: name, stream: true, error: String(err && err.message || err) });
+        });
+      };
+      es.onerror = function () {
+        // EventSource reconnects automatically; the server controls the
+        // backoff with the SSE "retry:" field.
+        emit("islands:error", { island: name, stream: true, error: "stream connection lost" });
+      };
+    });
+  }
+
+  loadManifest().then(function (m) {
+    manifest = m;
+    startStreams();
+  }).catch(function () {
     // No manifest: the runtime stays dormant and the server-driven
     // fallback (hx-post) keeps working untouched.
   });

@@ -15,11 +15,15 @@ templ Layout(title string, content templ.Component) {
 		</head>
 		<body>
 			<main class="container">
-				<h1>Demo Social — libreria templ-islands</h1>
-				<p class="subtitle">
-					Modo del like: <span id="mode-badge" class="badge">B · optimistic UI (runtime)</span>
-				</p>
-				@content
+			<h1>Demo Social — libreria templ-islands</h1>
+			<p class="subtitle">
+				Modo del like: <span id="mode-badge" class="badge">B · optimistic UI (runtime)</span>
+			</p>
+			<nav class="nav">
+				<a href="/">Feed</a>
+				<a href="/chat">Chat con el agente</a>
+			</nav>
+			@content
 			</main>
 		</body>
 	</html>

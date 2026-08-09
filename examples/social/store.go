@@ -15,6 +15,12 @@ type Comment struct {
 	Text   string `json:"text"`
 }
 
+// ChatMsg is one line in the simulated agent chat.
+type ChatMsg struct {
+	From string `json:"from"`
+	Text string `json:"text"`
+}
+
 // Store is an in-memory post store. For a demo this is enough; a real app
 // would use a database. The mutex keeps concurrent requests safe.
 type Store struct {
@@ -23,6 +29,7 @@ type Store struct {
 	next      int
 	comments  map[int][]Comment
 	nextComID int
+	messages  []ChatMsg
 }
 
 func NewStore() *Store {
@@ -141,4 +148,20 @@ func (s *Store) DeleteComment(id int) ([]Comment, bool) {
 		}
 	}
 	return nil, false
+}
+
+// ChatMessages returns the chat history.
+func (s *Store) ChatMessages() []ChatMsg {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return append([]ChatMsg(nil), s.messages...)
+}
+
+// AddChatMessage appends a message to the chat history.
+func (s *Store) AddChatMessage(from, text string) ChatMsg {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	m := ChatMsg{From: from, Text: text}
+	s.messages = append(s.messages, m)
+	return m
 }
