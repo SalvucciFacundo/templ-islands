@@ -1,0 +1,28 @@
+package views
+
+import (
+	"fmt"
+	"strconv"
+)
+
+// @island follow endpoint=/api/follow/{user_id} method=POST
+// @field following selector=[data-mutate=follow-label] op=toggle-text true=Following false=Follow
+// @field following op=class-toggle class=following
+templ FollowButton(userID int, following bool) {
+	<button
+		class={ "follow-btn", templ.KV("following", following) }
+		data-island="follow"
+		data-user-id={ strconv.Itoa(userID) }
+		hx-post={ fmt.Sprintf("/follow/%d", userID) }
+		hx-swap="outerHTML"
+		hx-disabled-elt="this"
+	>
+		<span class="follow-label" data-mutate="follow-label">
+			if following {
+				Following
+			} else {
+				Follow
+			}
+		</span>
+	</button>
+}

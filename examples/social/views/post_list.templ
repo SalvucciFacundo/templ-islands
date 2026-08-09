@@ -1,0 +1,19 @@
+package views
+
+// @island post-list endpoint=/api/posts method=GET render=/static/post-list.js trigger=input
+templ PostList(posts []Post) {
+	<input
+		class="search"
+		type="search"
+		placeholder="Buscar posts..."
+		data-island="post-list"
+		data-trigger="input"
+		data-target="#feed"
+		data-param="q"
+	/>
+	<div id="feed">
+		for _, p := range posts {
+			@PostCard(p)
+		}
+	</div>
+}

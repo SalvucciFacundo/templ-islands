@@ -1,0 +1,14 @@
+# Binarios compilados
+/templ-islands
+/demo-social
+*.exe
+
+# Cobertura y artefactos de test
+*.out
+*.test
+
+# Editores / SO
+.idea/
+.vscode/
+*.swp
+.DS_Store

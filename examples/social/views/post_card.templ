@@ -1,0 +1,16 @@
+package views
+
+// PostCard renders one post. The JS renderer (static/post-list.js) must
+// produce IDENTICAL markup — the parity test enforces this.
+templ PostCard(p Post) {
+	<div class="post">
+		<div class="post-header">
+			<span class="author">Autor { p.AuthorID }</span>
+			@FollowButton(p.AuthorID, p.Following)
+		</div>
+		<p class="post-text">{ p.Text }</p>
+		<div class="post-actions">
+			@LikeButton(p)
+		</div>
+	</div>
+}

@@ -1,0 +1,26 @@
+package views
+
+// Layout is the HTML shell shared by every page. It loads htmx (for the
+// server-driven fallback) and the library runtime (for optimistic mode).
+templ Layout(title string, content templ.Component) {
+	<!DOCTYPE html>
+	<html lang="es">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/static/style.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+			<script src="/islands/runtime.js" defer></script>
+		</head>
+		<body>
+			<main class="container">
+				<h1>Demo Social — libreria templ-islands</h1>
+				<p class="subtitle">
+					Modo del like: <span id="mode-badge" class="badge">B · optimistic UI (runtime)</span>
+				</p>
+				@content
+			</main>
+		</body>
+	</html>
+}

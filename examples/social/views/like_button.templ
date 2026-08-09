@@ -1,0 +1,36 @@
+package views
+
+import (
+	"fmt"
+	"strconv"
+)
+
+// LikeButton is the island. It declares:
+//   - data-island="like"      → matches the registry entry
+//   - data-post-id            → fills the {post_id} endpoint placeholder
+//   - data-mutate="likes"     → the runtime updates this element with "likes"
+//   - data-mutate="label"     → the runtime alternates this text
+//   - hx-post (fallback)      → server-driven mode A when the runtime is absent
+// @island like endpoint=/api/like/{post_id} method=POST
+// @field likes selector=[data-mutate=likes] op=inc delta=1
+// @field liked selector=[data-mutate=label] op=toggle-text true=Liked false=Like
+// @field liked op=class-toggle class=liked
+templ LikeButton(post Post) {
+	<button
+		class={ "like-btn", templ.KV("liked", post.Liked) }
+		data-island="like"
+		data-post-id={ strconv.Itoa(post.ID) }
+		hx-post={ fmt.Sprintf("/like/%d", post.ID) }
+		hx-swap="outerHTML"
+		hx-disabled-elt="this"
+	>
+		<span class="label" data-mutate="label">
+			if post.Liked {
+				Liked
+			} else {
+				Like
+			}
+		</span>
+		<span class="count" data-mutate="likes">{ post.Likes }</span>
+	</button>
+}
