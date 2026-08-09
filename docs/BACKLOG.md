@@ -32,11 +32,13 @@ con prioridades.
 ## Prioridad baja / infraestructura
 
 - [ ] Dockerfile + ejemplo de deploy en una instancia propia.
-- [ ] Bench del modo client vs server-driven dentro del repo (el de `demo-social/`
-      quedó fuera del repo).
 
 ## Hecho recientemente (para referencia)
 
+- ✅ Bench client vs server-driven (`examples/social/bench_test.go`): la misma
+      acción en ambos modos. Feed: JSON = 17% del HTML y ~10x menos CPU/mem
+      que renderizar con templ. Like: JSON = 10% del HTML. El costo se traslada
+      al browser (renderer JS, controlado por el parity test) + optimistic UI.
 - ✅ Errores por campo en renderers: el runtime deja pasar el body no-2xx con
       `field_errors` al renderer (antes lo tiraba), emite `islands:error`, y el
       renderer los pinta inline. Patrón documentado en usage.md + E2E con
