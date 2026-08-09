@@ -171,6 +171,10 @@
             applyServer(roots, field, data);
           });
           emit("islands:success", { island: root.dataset.island, data: data });
+          // con data-key el cambio es compartido: sincronizar otras pestanas
+          if (root.dataset.key) {
+            emitChannel({ type: "mutated", island: root.dataset.island, key: root.dataset.key, data: data, at: Date.now() });
+          }
         })
         .catch(function (err) {
           rollback(prev);
@@ -363,6 +367,8 @@
         applyFieldErrors(form, null); // limpiar errores viejos en exito
         return renderInto(form, cfg, data).then(function () {
           emit("islands:success", { island: form.dataset.island, data: data });
+          // el submit cambio un estado global (feed): avisar otras pestanas
+          emitChannel({ type: "refresh", island: form.dataset.island, target: form.dataset.target, at: Date.now() });
         });
       })
       .catch(function (err) {
@@ -413,6 +419,7 @@
         applyFieldErrors(form, null);
         return renderInto(form, cfg, body).then(function () {
           emit("islands:success", { island: form.dataset.island, data: body });
+          emitChannel({ type: "refresh", island: form.dataset.island, target: form.dataset.target, at: Date.now() });
         });
       }
       if (body && body.field_errors) {
@@ -504,6 +511,59 @@
     true
   );
 
+  // ---- multi-tab sync (BroadcastChannel) ----------------------------------
+  // v1: sincroniza mutaciones (data-key) y refrescos de listas entre pestanas
+  // del mismo origin. El server sigue siendo la source of truth: el mensaje
+  // lleva la respuesta que el server ya dio, nunca se recalcula en el peer.
+  // Sin BroadcastChannel (browsers viejos) el runtime funciona igual, sin
+  // sincronizacion. Diseño completo: docs/multitab.md.
+  var channel = null;
+
+  function openChannel() {
+    if (typeof BroadcastChannel === "undefined") return;
+    channel = new BroadcastChannel("templ-islands");
+    channel.onmessage = function (e) {
+      var msg = e.data;
+      if (!msg || typeof msg !== "object") return;
+      if (msg.type === "mutated") applyMutated(msg);
+      else if (msg.type === "refresh") applyRefresh(msg);
+    };
+  }
+
+  function emitChannel(msg) {
+    if (channel) channel.postMessage(msg);
+  }
+
+  // El peer aplica la respuesta del server a sus propias instancias
+  // island+key. Si no tiene ninguna (otra pagina), ignora.
+  function applyMutated(msg) {
+    if (!msg.island || !msg.key || !msg.data) return;
+    var cfg = manifest && manifest[msg.island];
+    if (!cfg || !cfg.fields) return;
+    var roots = Array.prototype.slice.call(
+      document.querySelectorAll('[data-island="' + msg.island + '"][data-key="' + msg.key + '"]')
+    );
+    if (!roots.length) return;
+    cfg.fields.forEach(function (field) {
+      applyServer(roots, field, msg.data);
+    });
+  }
+
+  // El peer re-fetchea el endpoint y re-renderiza su target local. GET
+  // forzado: el method de la isla puede ser POST (crear) y refrescar con
+  // POST volveria a crear. El GET devuelve el estado.
+  function applyRefresh(msg) {
+    if (!msg.island) return;
+    var cfg = manifest && manifest[msg.island];
+    if (!cfg || !cfg.render) return;
+    var roots = Array.prototype.slice.call(
+      document.querySelectorAll('[data-island="' + msg.island + '"][data-target]')
+    );
+    roots.forEach(function (root) {
+      reRender(root, Object.assign({}, cfg, { method: "GET" }));
+    });
+  }
+
   // ---- real-time streams (SSE) -------------------------------------------
   // A page opts in with <div data-stream="name" data-target="#x"></div>.
   // The runtime opens an EventSource to the island endpoint and re-renders
@@ -582,6 +642,7 @@
 
   loadManifest().then(function (m) {
     manifest = m;
+    openChannel();
     startIntersectionObservers();
     startStreams();
   }).catch(function () {

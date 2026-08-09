@@ -97,6 +97,42 @@ test("upload: file input previews instantly and the post carries the image", asy
   expect(src).toMatch(/^\/static\/uploads\//);
 });
 
+test("multi-tab: like in one tab syncs to the other instantly", async ({ page }) => {
+  // segunda pestana del MISMO context: comparte el BroadcastChannel
+  const pageB = await page.context().newPage();
+  await page.goto("/");
+  await pageB.goto("/");
+  await expect(page.locator(".like-btn .count").first()).toBeVisible();
+  await expect(pageB.locator(".like-btn .count").first()).toBeVisible();
+
+  const countA = page.locator(".like-btn .count").first();
+  const countB = pageB.locator(".like-btn .count").first();
+  const before = parseInt(await countB.textContent(), 10);
+
+  await page.locator(".like-btn").first().click();
+
+  // A: optimista + server
+  await expect(countA).toHaveText(String(before + 1));
+  // B: la respuesta del server llega por el canal, sin recargar
+  await expect(countB).toHaveText(String(before + 1));
+  await expect(pageB.locator(".like-btn").first()).toHaveClass(/liked/);
+});
+
+test("multi-tab: new post in one tab refreshes the feed in the other", async ({ page }) => {
+  const pageB = await page.context().newPage();
+  await page.goto("/");
+  await pageB.goto("/");
+  await expect(page.locator(".new-post input[type=text]")).toBeVisible();
+  await expect(pageB.locator(".post").first()).toBeVisible();
+
+  await page.fill(".new-post input[type=text]", "post multi-tab");
+  await page.locator(".new-post button").click();
+
+  await expect(page.locator(".post-text", { hasText: "post multi-tab" })).toBeVisible();
+  // B se entera por refresh y re-fetchea su feed
+  await expect(pageB.locator(".post-text", { hasText: "post multi-tab" })).toBeVisible();
+});
+
 test("infinite scroll: sentinel appends pages until the end", async ({ page }) => {
   await page.goto("/");
   // Con un feed corto, el sentinel puede auto-disparar al cargar (rootMargin

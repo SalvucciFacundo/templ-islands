@@ -199,6 +199,7 @@ uploading with `data-preview`.
 | **Stale responses** | Re-render fetches cancel the previous in-flight request for the same target (`AbortController`); aborts are not errors. Mutations are never cancelled — guarded by disable + `aria-disabled` |
 | **CSRF** | `<meta name="csrf-token">` is sent as `X-CSRF-Token` on mutating requests only, never GET |
 | **Events** | `islands:success` / `islands:error` dispatched on `document` — listen and show toasts; `islands:progress` (`{loaded,total,percent}`) during file uploads |
+| **Multi-tab** | Mutations with `data-key` and form submits sync across tabs of the same origin via `BroadcastChannel` — the server stays the source of truth; unsupported browsers degrade to no sync. Design: [`multitab.md`](multitab.md) |
 | **Selector validation** | `templ-islands generate` fails with a clear error if a declared `data-mutate` selector does not exist in the template |
 
 ## Server-side API (`islands` package)

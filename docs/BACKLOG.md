@@ -6,10 +6,11 @@ con prioridades.
 
 ## Prioridad alta (antes de producción real)
 
-- [ ] **Multi-tab con BroadcastChannel**: dos pestañas del mismo chat abren dos
-      conexiones SSE y renderizan dos veces. Compartir una conexión por clave de
-      dominio vía BroadcastChannel evita la duplicación. (Diseño previo antes de
-      implementar: protocolo de mensajes, reconciliación, ciclo de vida.)
+- [ ] **Stream SSE compartido entre pestañas (v2 de multitab)**: una sola
+      conexión `EventSource` por origin con elección de líder, heartbeat y
+      failover; el líder re-emite por `BroadcastChannel` y las demás pestañas
+      re-renderizan desde el canal. Diseñado en [`multitab.md`](multitab.md),
+      fuera de v1 por el costo de los edge cases.
 
 ## Prioridad media
 
@@ -36,7 +37,10 @@ con prioridades.
 
 ## Hecho recientemente (para referencia)
 
-- ✅ E2E Playwright completo (7 tests: like, search, comments, chat SSE, field
+- ✅ Multi-tab v1 (BroadcastChannel): mutaciones con `data-key` y form submits
+      se sincronizan entre pestañas del mismo origin; el server gana, los peers
+      aplican en silencio. E2E multi-pestaña real (like + refresh).
+- ✅ E2E Playwright completo (9 tests: like, search, comments, chat SSE, field
       errors, upload con imagen, infinite scroll) — destapó y confirmó bugs que
       ningún test Go/JS veía.
 - ✅ Chat SSE arreglado: los roots de stream usan `data-stream` (no `data-island`)
@@ -65,4 +69,5 @@ data-confirm), búsqueda (re-render input con data-debounce), filtros por select
 (re-render change), click para expandir (re-render click), formularios (form
 submit + field_errors), feedback (eventos), infinite scroll (intersect), chat
 en vivo (stream SSE con Last-Event-ID), CSRF, anti-race (AbortController),
-upload de archivos (multipart + islands:progress + previews optimistas).
+upload de archivos (multipart + islands:progress + previews optimistas),
+multi-tab (BroadcastChannel: mutaciones y refrescos entre pestañas).
