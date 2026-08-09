@@ -2,6 +2,11 @@
 
 ![templ-islands banner](docs/assets/banner.jpg)
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/salvuccifacundo/templ-islands.svg)](https://pkg.go.dev/github.com/salvuccifacundo/templ-islands)
+[![Go Report Card](https://goreportcard.com/badge/github.com/salvuccifacundo/templ-islands)](https://goreportcard.com/report/github.com/salvuccifacundo/templ-islands)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/SalvucciFacundo/templ-islands)](https://github.com/SalvucciFacundo/templ-islands/releases)
+
 **Same templ component, rendered server-side or hydrated client-side under Go.**
 Mark components as *islands*, and a generic embedded runtime handles optimistic
 UI, local re-render, forms, infinite scroll, real-time streams, file uploads
@@ -75,6 +80,10 @@ go test ./...                     # unit + golden parity test (needs Node)
 node --test islands/runtime-core.test.js   # runtime core JS tests
 npx playwright test               # E2E browser suite (11 tests)
 ```
+
+## Contributing
+
+Contributions, bug reports, and pull requests are welcome! If you find a bug, have an idea for an improvement, or test the library in your projects, feel free to open an [Issue](https://github.com/SalvucciFacundo/templ-islands/issues) or submit a [Pull Request](https://github.com/SalvucciFacundo/templ-islands/pulls).
 
 ## License
 
