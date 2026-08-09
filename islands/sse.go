@@ -12,10 +12,14 @@ import (
 //
 //	islands.SSEHeaders(w)
 //	islands.WriteSSE(w, map[string]any{"messages": msgs})
+//
+// Incluye X-Accel-Buffering: no para que nginx (y proxies que lo respetan)
+// no buffericen el stream y cada evento llegue en vivo.
 func SSEHeaders(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("X-Accel-Buffering", "no")
 }
 
 // WriteSSE serializa data como un evento SSE y hace flush para que llegue de

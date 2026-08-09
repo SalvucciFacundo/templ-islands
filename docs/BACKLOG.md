@@ -4,6 +4,17 @@ Pendientes cosméticos y de largo plazo. Lo esencial está implementado (mira el
 README para el estado completo). Esto es lo que quedó afuera deliberadamente,
 con prioridades.
 
+## Prioridad alta (antes de producción real)
+
+- [ ] **Test E2E en browser (Playwright)**: el único test que falta. El bug del
+      infinite scroll (post-more buscaba un renderer inexistente) fallaba SOLO
+      en el browser real — ningún test Go/JS lo cazó. Un smoke test E2E que
+      abra el ejemplo y verifique like, búsqueda, comentarios y SSE en un
+      browser real atraparía esta clase de bug.
+- [ ] **Multi-tab con BroadcastChannel**: dos pestañas del mismo chat abren dos
+      conexiones SSE y renderizan dos veces. Compartir una conexión por clave de
+      dominio vía BroadcastChannel evita la duplicación.
+
 ## Prioridad media
 
 - [ ] **Adapter Datastar**: el fallback server-driven está hardcodeado a htmx

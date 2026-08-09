@@ -32,6 +32,9 @@ func TestSSEHeaders(t *testing.T) {
 	if cc := rec.Header().Get("Cache-Control"); cc != "no-cache" {
 		t.Fatalf("Cache-Control = %q, want no-cache", cc)
 	}
+	if xa := rec.Header().Get("X-Accel-Buffering"); xa != "no" {
+		t.Fatalf("X-Accel-Buffering = %q, want no (proxies must not buffer SSE)", xa)
+	}
 }
 
 func TestWriteSSEOnResponseWriter(t *testing.T) {

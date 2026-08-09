@@ -59,6 +59,7 @@ Pick a page — the README stays short on purpose:
 |---|---|
 | [**Usage guide**](docs/usage.md) | The full contract, every capability with examples, runtime behaviors, server API, CLI and directives reference |
 | [**Architecture**](docs/architecture.md) | Diagram, layout, design decisions, the three problems it solves |
+| [**Production guide**](docs/production.md) | What breaks behind proxies/CDNs, auth in SSE, CSP, version skew, scaling |
 | [**SSE design**](docs/SSE.md) | Real-time layer: retry, jitter, Last-Event-ID, heartbeats |
 | [**Proposal**](docs/propuesta-v2.md) | Original idea and tradeoff analysis (Spanish) |
 | [**Backlog**](docs/BACKLOG.md) | Deferred ideas and priorities |
