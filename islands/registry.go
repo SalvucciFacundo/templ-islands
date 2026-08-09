@@ -1,5 +1,5 @@
-// registry.go: el registro de islas declaradas en Go — la fuente de verdad
-// del manifest que consume el runtime client.
+// registry.go: the Go-declared island registry — the source of truth for the
+// manifest consumed by the client runtime.
 package islands
 
 import (

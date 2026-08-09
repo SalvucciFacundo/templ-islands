@@ -7,14 +7,14 @@ import (
 	"net/http"
 )
 
-// SSEHeaders prepara una respuesta para Server-Sent Events. Usala al abrir
-// un endpoint /events/... en tu app:
+// SSEHeaders prepares a response for Server-Sent Events. Call it when
+// opening an /events/... endpoint in your app:
 //
 //	islands.SSEHeaders(w)
 //	islands.WriteSSE(w, map[string]any{"messages": msgs})
 //
-// Incluye X-Accel-Buffering: no para que nginx (y proxies que lo respetan)
-// no buffericen el stream y cada evento llegue en vivo.
+// It also sets X-Accel-Buffering: no, so nginx (and proxies that honor it)
+// do not buffer the stream and every event arrives live.
 func SSEHeaders(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -22,9 +22,9 @@ func SSEHeaders(w http.ResponseWriter) {
 	w.Header().Set("X-Accel-Buffering", "no")
 }
 
-// WriteSSE serializa data como un evento SSE y hace flush para que llegue de
-// inmediato: "data: {...}\n\n". El runtime client lo parsea como JSON y lo
-// pasa al renderer de la isla stream.
+// WriteSSE serializes data as an SSE event and flushes it so it arrives
+// immediately: "data: {...}\n\n". The client runtime parses it as JSON and
+// passes it to the stream island's renderer.
 func WriteSSE(w http.ResponseWriter, data any) error {
 	b, err := json.Marshal(data)
 	if err != nil {
@@ -39,10 +39,10 @@ func WriteSSE(w http.ResponseWriter, data any) error {
 	return nil
 }
 
-// WriteSSEID serializa un evento SSE con id: "id: N\ndata: {...}\n\n".
-// El id permite la resiliencia por Last-Event-ID: si la conexion cae, el
-// navegador envia el header Last-Event-ID al reconectar y el servidor puede
-// reenviar los eventos posteriores sin perder mensajes.
+// WriteSSEID serializes an SSE event with an id: "id: N\ndata: {...}\n\n".
+// The id enables Last-Event-ID resilience: when the connection drops, the
+// browser sends the Last-Event-ID header on reconnect and the server can
+// resend the events after it without losing messages.
 func WriteSSEID(w http.ResponseWriter, id int, data any) error {
 	b, err := json.Marshal(data)
 	if err != nil {
@@ -57,10 +57,10 @@ func WriteSSEID(w http.ResponseWriter, id int, data any) error {
 	return nil
 }
 
-// WriteSSERetry emite el campo retry: con jitter para que una reconexion
-// masiva (thundering herd) no golpee al servidor en el mismo segundo.
-// El valor es base + [0, jitter) milisegundos. Llamalo una vez al abrir el
-// stream, antes del primer evento:
+// WriteSSERetry emits the retry: field with jitter so a mass reconnect
+// (thundering herd) does not hit the server in the same second. The value is
+// base + [0, jitter) milliseconds. Call it once when opening the stream,
+// before the first event:
 //
 //	islands.SSEHeaders(w)
 //	islands.WriteSSERetry(w, 3000, 2000)
@@ -75,10 +75,10 @@ func WriteSSERetry(w http.ResponseWriter, base, jitter int) {
 	}
 }
 
-// WriteSSEPing emite un comentario SSE (": ping") que el navegador ignora.
-// Sirve de heartbeat para mantener la conexion viva a traves de proxies que
-// cortan conexiones largas. Llamalo periodicamente (ej: cada 15s) mientras
-// no haya eventos reales:
+// WriteSSEPing emits an SSE comment (": ping") that the browser ignores. It
+// works as a heartbeat to keep the connection alive through proxies that cut
+// long-lived connections. Call it periodically (e.g. every 15s) while there
+// are no real events:
 //
 //	ticker := time.NewTicker(15 * time.Second)
 //	...

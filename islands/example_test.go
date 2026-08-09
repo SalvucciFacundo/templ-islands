@@ -9,8 +9,9 @@ import (
 	"github.com/SalvucciFacundo/templ-islands/islands"
 )
 
-// ExampleRegistry_Register muestra el flujo mínimo: declarar una isla de
-// mutación optimista y leer el manifest que describe al runtime client.
+// ExampleRegistry_Register shows the minimal flow: declare an optimistic
+// mutation island and read the manifest that describes it to the client
+// runtime.
 func ExampleRegistry_Register() {
 	reg := islands.New()
 	reg.Register("like",
@@ -20,7 +21,7 @@ func ExampleRegistry_Register() {
 		},
 		"/api/like/{post_id}", "POST")
 
-	// El RuntimeHandler sirve el JS del cliente y el manifest en JSON.
+	// RuntimeHandler serves the client JS and the JSON manifest.
 	srv := httptest.NewServer(reg.RuntimeHandler())
 	defer srv.Close()
 
