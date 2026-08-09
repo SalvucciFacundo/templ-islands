@@ -15,14 +15,25 @@ The demo validated this with real numbers: server-driven re-rendered the button 
 3. Register the islands in `main.go` and mount the runtime handler.
 4. Run the example: `cd examples/social && go run .` → http://localhost:8081.
 
-## Two kinds of islands
+## Three capabilities
 
-| Kind | Trigger | What the client runtime does |
-|------|---------|------------------------------|
+| Capability | Trigger | What the client runtime does |
+|------------|---------|------------------------------|
 | **Mutation** (like, follow, counters) | `click` | Applies declared optimistic ops instantly, syncs with a JSON endpoint, applies the server response (source of truth) or rolls back on error. |
-| **Re-render** (lists, filters, search) | `input` (debounced) | Fetches JSON from the endpoint, loads the island's JS renderer and re-renders the target container locally. |
+| **Re-render** (lists, filters, search) | `input` or `change` | Fetches JSON from the endpoint, loads the island's JS renderer and re-renders the target container locally. |
+| **Form submit** (create/edit, checkout) | `submit` | POSTs the form data, re-renders the target with the response and emits `islands:success` / `islands:error`. |
 
-Both kinds share one generic runtime (`islands/runtime.js`, embedded in the binary) driven by a manifest generated from the Go registry. Adding an island never requires touching the JS.
+All capabilities share one generic runtime (`islands/runtime.js`, embedded in the
+binary) driven by a manifest generated from the Go registry. Adding an island
+never requires touching the JS.
+
+**Shared domain keys:** add `data-key="post-1"` to an island and the mutation
+applies to every instance with the same key on the page (e.g. the same post in
+the feed and in a modal).
+
+**Error feedback:** every failure emits `islands:error` on `document` with
+`{ island, error, status?, response? }` — listen and show a toast. Success
+emits `islands:success` with `{ island, data? }`.
 
 ## Usage
 
@@ -63,6 +74,24 @@ mux.Handle("GET /islands/", http.StripPrefix("/islands/", reg.RuntimeHandler()))
 **Fallback is built-in:** the button keeps `hx-post`, so if the runtime does not load, htmx takes over and the server-driven mode still works. Nothing breaks.
 
 **Selector validation is built-in:** `templ-islands generate` fails with a clear error if a declared `data-mutate` selector does not exist in the template.
+
+**Re-render with a select (filter dropdown):** declare `trigger=change` on the island and put `data-trigger="change"` on the `<select>` — the runtime debounces and re-renders the target with the selected value as `data-param`.
+
+**Form submit example:**
+
+```templ
+// @island new-post endpoint=/api/posts method=POST render=/static/post-list.js trigger=submit
+templ NewPostForm() {
+	<form data-island="new-post" data-trigger="submit" data-target="#feed">
+		<input type="text" name="text" required/>
+		<button type="submit">Publicar</button>
+	</form>
+}
+```
+
+The server returns the data the renderer expects (in the example, the full post
+list). On validation errors it can return a non-2xx JSON body — the runtime
+emits `islands:error` with the `response` so your app can show the errors.
 
 ## Architecture
 

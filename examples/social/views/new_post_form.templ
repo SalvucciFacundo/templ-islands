@@ -1,0 +1,14 @@
+package views
+
+// @island new-post endpoint=/api/posts method=POST render=/static/post-list.js trigger=submit
+templ NewPostForm() {
+	<form
+		class="new-post"
+		data-island="new-post"
+		data-trigger="submit"
+		data-target="#feed"
+	>
+		<input type="text" name="text" placeholder="Escribi un post..." required/>
+		<button type="submit">Publicar</button>
+	</form>
+}

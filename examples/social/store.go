@@ -83,6 +83,16 @@ func (s *Store) Follow(authorID int) (views.Post, bool) {
 	return views.Post{}, false
 }
 
+// Create appends a new post and returns it.
+func (s *Store) Create(text string) views.Post {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	p := views.Post{ID: s.next, Text: text, AuthorID: s.next}
+	s.next++
+	s.posts = append(s.posts, p)
+	return p
+}
+
 // Search returns posts whose text contains q (case-insensitive).
 func (s *Store) Search(q string) []views.Post {
 	s.mu.RLock()

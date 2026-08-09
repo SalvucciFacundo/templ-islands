@@ -59,7 +59,7 @@ import "github.com/SalvucciFacundo/templ-islands/islands"
 func RegisterIslands(reg *islands.Registry) {
 {{- range .Islands }}
 {{- if .Render }}
-	reg.RegisterRender("{{ .Name }}", "{{ .Endpoint }}", "{{ .Render }}", "{{ .Trigger }}")
+	reg.RegisterRender("{{ .Name }}", "{{ .Endpoint }}", "{{ .Method }}", "{{ .Render }}", "{{ .Trigger }}")
 {{- else }}
 	reg.Register("{{ .Name }}",
 		[]islands.Field{

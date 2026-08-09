@@ -12,6 +12,7 @@ templ FollowButton(userID int, following bool) {
 	<button
 		class={ "follow-btn", templ.KV("following", following) }
 		data-island="follow"
+		data-key={ fmt.Sprintf("author-%d", userID) }
 		data-user-id={ strconv.Itoa(userID) }
 		hx-post={ fmt.Sprintf("/follow/%d", userID) }
 		hx-swap="outerHTML"

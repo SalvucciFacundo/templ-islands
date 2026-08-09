@@ -8,8 +8,8 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// @island post-list endpoint=/api/posts method=GET render=/static/post-list.js trigger=input
-func PostList(posts []Post) templ.Component {
+// @island new-post endpoint=/api/posts method=POST render=/static/post-list.js trigger=submit
+func NewPostForm() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -30,21 +30,7 @@ func PostList(posts []Post) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = NewPostForm().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<input class=\"search\" type=\"search\" placeholder=\"Buscar posts...\" data-island=\"post-list\" data-trigger=\"input\" data-target=\"#feed\" data-param=\"q\"><div id=\"feed\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		for _, p := range posts {
-			templ_7745c5c3_Err = PostCard(p).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form class=\"new-post\" data-island=\"new-post\" data-trigger=\"submit\" data-target=\"#feed\"><input type=\"text\" name=\"text\" placeholder=\"Escribi un post...\" required> <button type=\"submit\">Publicar</button></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

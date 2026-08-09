@@ -19,6 +19,7 @@ templ LikeButton(post Post) {
 	<button
 		class={ "like-btn", templ.KV("liked", post.Liked) }
 		data-island="like"
+		data-key={ fmt.Sprintf("post-%d", post.ID) }
 		data-post-id={ strconv.Itoa(post.ID) }
 		hx-post={ fmt.Sprintf("/like/%d", post.ID) }
 		hx-swap="outerHTML"

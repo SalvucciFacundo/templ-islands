@@ -44,5 +44,6 @@ func RegisterIslands(reg *islands.Registry) {
 			},
 		},
 		"/api/like/{post_id}", "POST")
-	reg.RegisterRender("post-list", "/api/posts", "/static/post-list.js", "input")
+	reg.RegisterRender("new-post", "/api/posts", "POST", "/static/post-list.js", "submit")
+	reg.RegisterRender("post-list", "/api/posts", "GET", "/static/post-list.js", "input")
 }

@@ -16,13 +16,13 @@ window.islandsRenderers["post-list"] = function (posts) {
         '<div class="post">' +
         '<div class="post-header">' +
         '<span class="author">Autor ' + p.author_id + "</span>" +
-        '<button class="follow-btn' + following + '" data-island="follow" data-user-id="' + p.author_id + '" hx-post="/follow/' + p.author_id + '" hx-swap="outerHTML" hx-disabled-elt="this">' +
+        '<button class="follow-btn' + following + '" data-island="follow" data-key="author-' + p.author_id + '" data-user-id="' + p.author_id + '" hx-post="/follow/' + p.author_id + '" hx-swap="outerHTML" hx-disabled-elt="this">' +
         '<span class="follow-label" data-mutate="follow-label">' + followLabel + "</span>" +
         "</button>" +
         "</div>" +
         '<p class="post-text">' + escapeHtml(p.text) + "</p>" +
         '<div class="post-actions">' +
-        '<button class="like-btn' + liked + '" data-island="like" data-post-id="' + p.id + '" hx-post="/like/' + p.id + '" hx-swap="outerHTML" hx-disabled-elt="this">' +
+        '<button class="like-btn' + liked + '" data-island="like" data-key="post-' + p.id + '" data-post-id="' + p.id + '" hx-post="/like/' + p.id + '" hx-swap="outerHTML" hx-disabled-elt="this">' +
         '<span class="label" data-mutate="label">' + likeLabel + "</span> " +
         '<span class="count" data-mutate="likes">' + p.likes + "</span>" +
         "</button>" +

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/SalvucciFacundo/templ-islands/examples/social/views"
 	"github.com/SalvucciFacundo/templ-islands/islands"
@@ -39,6 +40,20 @@ func main() {
 		posts := store.Search(q)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(posts)
+	})
+
+	// POST /api/posts — form submit (isla new-post): crea el post y devuelve
+	// la lista completa para que el renderer re-renderice el feed.
+	mux.HandleFunc("POST /api/posts", func(w http.ResponseWriter, r *http.Request) {
+		text := strings.TrimSpace(r.FormValue("text"))
+		if text == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]any{"error": "texto vacio"})
+			return
+		}
+		store.Create(text)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(store.Posts())
 	})
 
 	// POST /like/{id} — fallback server-driven (modo A). El boton conserva

@@ -2,6 +2,7 @@ package views
 
 // @island post-list endpoint=/api/posts method=GET render=/static/post-list.js trigger=input
 templ PostList(posts []Post) {
+	@NewPostForm()
 	<input
 		class="search"
 		type="search"

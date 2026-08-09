@@ -88,14 +88,15 @@ func (r *Registry) Register(name string, fields []Field, endpoint, method string
 // RegisterRender adds a re-render island: the runtime fetches JSON from
 // Endpoint on Trigger and re-renders the target using the JS renderer at
 // Render. Unlike Register, this island has no atomic fields — the whole
-// target is re-rendered from data.
-func (r *Registry) RegisterRender(name, endpoint, render, trigger string) {
+// target is re-rendered from data. Method is the HTTP method used
+// (GET for filters/search, POST for form submits).
+func (r *Registry) RegisterRender(name, endpoint, method, render, trigger string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.isles[name] = Island{
 		Name:     name,
 		Endpoint: endpoint,
-		Method:   "GET",
+		Method:   method,
 		Render:   render,
 		Trigger:  trigger,
 	}
