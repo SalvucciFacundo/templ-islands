@@ -34,8 +34,8 @@ con prioridades.
 ## Hecho recientemente (para referencia)
 
 - ✅ GoDoc: `doc.go` con el package comment completo + ejemplo ejecutable
-      (`ExampleRegistry_Register`) para pkg.go.dev; comments unificados al
-      español en el paquete `islands`.
+      (`ExampleRegistry_Register`) para pkg.go.dev; doc pública del paquete en
+      inglés (pkg.go.dev es una superficie global).
 - ✅ CLI `templ-islands generate` con subcomando + `--watch` (regenera al guardar
       un .templ; polling con debounce, sin dependencias).
 - ✅ Multi-tab v1 (BroadcastChannel): mutaciones con `data-key` y form submits
