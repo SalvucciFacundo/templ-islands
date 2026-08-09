@@ -1,6 +1,7 @@
 package views
 
 // @island post-list endpoint=/api/posts method=GET render=/static/post-list.js trigger=input
+// @island post-more endpoint=/api/posts method=GET render=/static/post-list.js trigger=intersect
 templ PostList(posts []Post) {
 	@NewPostForm()
 	<input
@@ -17,4 +18,13 @@ templ PostList(posts []Post) {
 			@PostCard(p)
 		}
 	</div>
+	<div
+		class="sentinel"
+		data-island="post-more"
+		data-trigger="intersect"
+		data-target="#feed"
+		data-param="page"
+		data-page="2"
+		data-swap="append"
+	></div>
 }

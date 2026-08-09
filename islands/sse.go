@@ -35,6 +35,24 @@ func WriteSSE(w http.ResponseWriter, data any) error {
 	return nil
 }
 
+// WriteSSEID serializa un evento SSE con id: "id: N\ndata: {...}\n\n".
+// El id permite la resiliencia por Last-Event-ID: si la conexion cae, el
+// navegador envia el header Last-Event-ID al reconectar y el servidor puede
+// reenviar los eventos posteriores sin perder mensajes.
+func WriteSSEID(w http.ResponseWriter, id int, data any) error {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", id, b); err != nil {
+		return err
+	}
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+	return nil
+}
+
 // WriteSSERetry emite el campo retry: con jitter para que una reconexion
 // masiva (thundering herd) no golpee al servidor en el mismo segundo.
 // El valor es base + [0, jitter) milisegundos. Llamalo una vez al abrir el

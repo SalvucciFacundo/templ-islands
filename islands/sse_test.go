@@ -69,3 +69,17 @@ func TestWriteSSERetryWithoutJitter(t *testing.T) {
 		t.Fatalf("retry sin jitter debe ser fijo: %q", rec.Body.String())
 	}
 }
+
+func TestWriteSSEIDFormat(t *testing.T) {
+	rec := httptest.NewRecorder()
+	if err := WriteSSEID(rec, 42, map[string]any{"m": 1}); err != nil {
+		t.Fatal(err)
+	}
+	got := rec.Body.String()
+	if !strings.HasPrefix(got, "id: 42\ndata: ") {
+		t.Fatalf("formato SSE con id invalido: %q", got)
+	}
+	if !strings.HasSuffix(got, "\n\n") {
+		t.Fatalf("falta el doble newline: %q", got)
+	}
+}

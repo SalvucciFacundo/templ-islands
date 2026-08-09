@@ -31,15 +31,22 @@ func main() {
 	mux.Handle("GET /islands/", http.StripPrefix("/islands/", reg.RuntimeHandler()))
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	// GET / — feed SSR completo con la isla de busqueda (re-render).
+	// GET / — feed SSR con la primera pagina + el sentinel de infinite scroll.
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		views.Layout("Demo Social", views.PostList(store.Posts())).Render(r.Context(), w)
+		views.Layout("Demo Social", views.PostList(store.SearchPaged("", 1, 3))).Render(r.Context(), w)
 	})
 
-	// GET /api/posts?q=... — datos JSON para la isla post-list (re-render).
+	// GET /api/posts?q=...&page=N&per=M — datos JSON. Con page pagina el
+	// resultado (infinite scroll); sin page devuelve la lista completa
+	// filtrada (busqueda, re-render por input).
 	mux.HandleFunc("GET /api/posts", func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
-		posts := store.Search(q)
+		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+		per, _ := strconv.Atoi(r.URL.Query().Get("per"))
+		if per == 0 {
+			per = 5
+		}
+		posts := store.SearchPaged(q, page, per)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(posts)
 	})
@@ -181,22 +188,37 @@ func main() {
 		json.NewEncoder(w).Encode(map[string]any{"messages": store.ChatMessages()})
 	})
 
-	// GET /events/chat — stream SSE de la isla chat-stream: envia el estado
-	// al conectar y despues cada evento que difunde el broker.
+	// GET /events/chat — stream SSE de la isla chat-stream. Reanuda por
+	// Last-Event-ID: si el navegador reconecta, se reenvia el historial
+	// posterior al ultimo evento recibido (resiliencia sin perder mensajes).
 	mux.HandleFunc("GET /events/chat", func(w http.ResponseWriter, r *http.Request) {
 		islands.SSEHeaders(w)
 		// Reconexion con jitter: mil clientes caidos no vuelven al mismo segundo.
 		islands.WriteSSERetry(w, 3000, 2000)
+
+		after := 0
+		if h := r.Header.Get("Last-Event-ID"); h != "" {
+			if n, err := strconv.Atoi(h); err == nil {
+				after = n
+			}
+		}
+
+		if after > 0 {
+			for _, ev := range broker.History(after) {
+				islands.WriteSSEID(w, ev.ID, ev.Data)
+			}
+		} else {
+			islands.WriteSSEID(w, 0, map[string]any{"messages": store.ChatMessages()})
+		}
+
 		ch := broker.Subscribe()
 		defer broker.Unsubscribe(ch)
-
-		islands.WriteSSE(w, map[string]any{"messages": store.ChatMessages()})
 		for {
 			select {
 			case <-r.Context().Done():
 				return
-			case msg := <-ch:
-				if err := islands.WriteSSE(w, msg); err != nil {
+			case ev := <-ch:
+				if err := islands.WriteSSEID(w, ev.ID, ev.Data); err != nil {
 					return
 				}
 			}

@@ -9,6 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 // @island post-list endpoint=/api/posts method=GET render=/static/post-list.js trigger=input
+// @island post-more endpoint=/api/posts method=GET render=/static/post-list.js trigger=intersect
 func PostList(posts []Post) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -44,7 +45,7 @@ func PostList(posts []Post) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"sentinel\" data-island=\"post-more\" data-trigger=\"intersect\" data-target=\"#feed\" data-param=\"page\" data-page=\"2\" data-swap=\"append\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

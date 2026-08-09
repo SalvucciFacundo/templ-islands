@@ -23,12 +23,17 @@ The demo validated this with real numbers: server-driven re-rendered the button 
 |------------|---------|------------------------------|
 | **Mutation** (like, follow, counters) | `click` | Applies declared optimistic ops instantly, syncs with a JSON endpoint, applies the server response (source of truth) or rolls back on error. |
 | **Re-render** (lists, filters, search) | `input`, `change` or `click` | Fetches JSON from the endpoint, loads the island's JS renderer and re-renders the target container locally. |
+| **Infinite scroll** | `intersect` | An `IntersectionObserver` on a sentinel fetches the next page and appends it (`data-swap="append"`); disconnects when the server answers `[]`. |
 | **Form submit** (create/edit, checkout) | `submit` | POSTs the form data, re-renders the target with the response and emits `islands:success` / `islands:error`. |
 | **Stream (SSE)** (live chat, agent status, tasks) | server events | Opens an `EventSource` to the endpoint and re-renders the target whenever the server emits an event. |
 
 All capabilities share one generic runtime (`islands/runtime.js`, embedded in the
 binary) driven by a manifest generated from the Go registry. Adding an island
 never requires touching the JS.
+
+**Debounce:** the re-render debounce defaults to 300ms and is configurable per
+element with `data-debounce="100"` (autocomplete) or `data-debounce="500"`
+(heavy search).
 
 **Streams (real time):** the page opts in with
 `<div data-stream="chat" data-target="#chat"></div>`; the server pushes JSON

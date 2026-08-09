@@ -237,21 +237,27 @@
     });
   }
 
-  function reRender(root, cfg) {
+  function reRender(root, cfg, onDone, onFail) {
     var param = root.dataset.param || "q";
+    // El valor sale del input (búsqueda) o, para intersect, del atributo
+    // data-<param> del propio elemento (data-page).
+    var value = root.value != null ? root.value : (root.dataset[param] || "");
     var sep = cfg.endpoint.indexOf("?") >= 0 ? "&" : "?";
-    var url = cfg.endpoint + sep + param + "=" + encodeURIComponent(root.value);
+    var url = cfg.endpoint + sep + param + "=" + encodeURIComponent(value);
+    var delay = parseInt(root.dataset.debounce, 10) || 300;
 
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(function () {
       trackFetch(root.dataset.target, url, cfg, function (data) {
         return renderInto(root, cfg, data).then(function () {
           emitSuccess(root);
+          if (onDone) onDone(data);
         });
       }, function (err) {
         emitError(root, err);
+        if (onFail) onFail(err);
       });
-    }, 300);
+    }, delay);
   }
 
   // click: fetch with {placeholder} tokens filled from data-* attributes.
@@ -363,6 +369,48 @@
   // A page opts in with <div data-stream="name" data-target="#x"></div>.
   // The runtime opens an EventSource to the island endpoint and re-renders
   // the target with the island's renderer on every event.
+  // ---- infinite scroll (intersect) ----------------------------------------
+  // A sentinel with data-trigger="intersect" fetches the next page when it
+  // enters the viewport (IntersectionObserver). The next page number lives in
+  // data-<param> (e.g. data-page="2") and is incremented after each success;
+  // when the server answers an empty array the observer is disconnected.
+  var intersectBusy = {};
+  var intersectObservers = {};
+
+  function startIntersectionObservers() {
+    var sentinels = document.querySelectorAll('[data-island][data-trigger="intersect"]');
+    if (!sentinels.length) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var root = entry.target;
+        var cfg = manifest[root.dataset.island];
+        if (!cfg || !cfg.render) return;
+        if (intersectBusy[root.dataset.target]) return;
+        intersectBusy[root.dataset.target] = true;
+        reRender(root, cfg, function (data) {
+          intersectBusy[root.dataset.target] = false;
+          if (Array.isArray(data) && data.length === 0) {
+            io.unobserve(root); // fin de la lista
+            delete intersectObservers[root.dataset.target];
+            return;
+          }
+          // avanzar a la proxima pagina para el siguiente intersect
+          var param = root.dataset.param || "q";
+          var n = parseInt(root.dataset[param], 10);
+          if (!isNaN(n)) root.dataset[param] = String(n + 1);
+        }, function () {
+          intersectBusy[root.dataset.target] = false;
+        });
+      });
+    }, { rootMargin: "200px" });
+
+    sentinels.forEach(function (s) {
+      intersectObservers[s.dataset.target] = io;
+      io.observe(s);
+    });
+  }
+
   function startStreams() {
     var roots = document.querySelectorAll("[data-stream]");
     if (!roots.length) return;
@@ -395,6 +443,7 @@
 
   loadManifest().then(function (m) {
     manifest = m;
+    startIntersectionObservers();
     startStreams();
   }).catch(function () {
     // No manifest: the runtime stays dormant and the server-driven

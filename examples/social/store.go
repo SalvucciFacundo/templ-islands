@@ -114,18 +114,30 @@ func (s *Store) Create(text string) views.Post {
 	return p
 }
 
-// Search returns posts whose text contains q (case-insensitive).
-func (s *Store) Search(q string) []views.Post {
+// SearchPaged filtra por q (si no vacia) y pagina si page > 0.
+// Con page <= 0 devuelve la lista filtrada completa.
+func (s *Store) SearchPaged(q string, page, per int) []views.Post {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	q = strings.ToLower(strings.TrimSpace(q))
-	out := []views.Post{}
+	filtered := []views.Post{}
 	for _, p := range s.posts {
 		if q == "" || strings.Contains(strings.ToLower(p.Text), q) {
-			out = append(out, p)
+			filtered = append(filtered, p)
 		}
 	}
-	return out
+	if page <= 0 || per <= 0 {
+		return filtered
+	}
+	start := (page - 1) * per
+	if start >= len(filtered) {
+		return []views.Post{}
+	}
+	end := start + per
+	if end > len(filtered) {
+		end = len(filtered)
+	}
+	return filtered[start:end]
 }
 
 // Comments returns the comments of a post.

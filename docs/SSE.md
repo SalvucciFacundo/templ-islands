@@ -144,7 +144,12 @@ hub conecta el agente con los suscriptores SSE.
    El runtime NO reimplementa backoff: el `EventSource` respeta el `retry:` del
    servidor, que es donde se controla el jitter.
 4. **SSE unidireccional.** El envío del usuario sigue siendo form submit (POST).
-5. El evento que llega puede traer **cualquier JSON** que el renderer sepa
+5. **Resiliencia nativa por `Last-Event-ID`.** Cada evento lleva `id: N`
+   (`WriteSSEID`); si la conexion cae, el navegador envia el header
+   `Last-Event-ID` al reconectar y el servidor reenvia el historial posterior
+   (el broker de la app guarda un historial acotado). No se pierden mensajes.
+   El runtime no cambia: `EventSource` maneja el reenvio del header solo.
+6. El evento que llega puede traer **cualquier JSON** que el renderer sepa
    interpretar; el renderer es la fuente de la forma del DOM (mismo patrón que
    el re-render por click).
 
@@ -184,8 +189,7 @@ queda 100% cubierto: librería (interacción) + SSE (eventos del agente).
 - **Re-render completo por evento**: para listas largas hay que pasar a append
   (BACKLOG). El límite real es el renderer.
 - **EventSource y proxies**: algunos proxies cortan conexiones largas; el
-  `retry:` + heartbeats del server lo mitigan.
-- **Los eventos SSE no son transaccionales**: si el browser pierde eventos
-  durante la reconexión, el estado puede quedar desactualizado — el renderer
-  debe poder pedir el estado completo al reconectar (o el server mandar el
-  estado en el primer evento tras la reconexión).
+  `retry:` + jitter + heartbeats del server lo mitigan.
+- **Los eventos SSE no son transaccionales**: la perdida durante la reconexion
+  se cubre con `Last-Event-ID` (el servidor reenvía el historial posterior al
+  último evento recibido). El historial del broker debe estar acotado.
