@@ -6,6 +6,16 @@
 window.islandsRenderers = window.islandsRenderers || {};
 
 function renderComments(comments) {
+  // Patron de renderers: cuando el server responde no-2xx con field_errors,
+  // el runtime deja pasar el body y el renderer los pinta inline dentro del
+  // target re-renderizado (no es un form, no aplica [data-error-for]).
+  if (comments && comments.field_errors) {
+    return Object.keys(comments.field_errors)
+      .map(function (f) {
+        return '<p class="comments-error">' + escapeHtml(comments.field_errors[f]) + "</p>";
+      })
+      .join("");
+  }
   if (!comments || !comments.length) {
     return '<p class="comments-empty">Sin comentarios.</p>';
   }

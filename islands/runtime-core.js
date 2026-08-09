@@ -61,6 +61,13 @@
         return v instanceof Blob;
       });
     },
+
+    // Un body de error de re-render lleva field_errors (el mismo contrato
+    // del form submit). El runtime lo deja pasar al renderer para que los
+    // pinte inline; sin field_errors es un error HTTP comun.
+    hasFieldErrors: function (body) {
+      return !!(body && typeof body === "object" && body.field_errors && typeof body.field_errors === "object");
+    },
   };
 
   if (typeof module !== "undefined" && module.exports) {

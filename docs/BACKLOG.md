@@ -21,9 +21,6 @@ con prioridades.
       clásico para que funcionen con JavaScript 100% apagado (nicho <1%).
 - [ ] **Tabs/paneles**: cambiar de pestaña sin recargar (re-render de un contenedor
       según la tab activa).
-- [ ] **Errores por campo en renderers**: patrón documentado para renderers que
-      generan los errores inline dentro del HTML re-renderizado (el binding
-      `[data-error-for]` ya existe para el form).
 
 ## Prioridad baja / infraestructura
 
@@ -33,6 +30,10 @@ con prioridades.
 
 ## Hecho recientemente (para referencia)
 
+- ✅ Errores por campo en renderers: el runtime deja pasar el body no-2xx con
+      `field_errors` al renderer (antes lo tiraba), emite `islands:error`, y el
+      renderer los pinta inline. Patrón documentado en usage.md + E2E con
+      interceptación de ruta (comments.js implementa el patrón).
 - ✅ GoDoc: `doc.go` con el package comment completo + ejemplo ejecutable
       (`ExampleRegistry_Register`) para pkg.go.dev; doc pública del paquete en
       inglés (pkg.go.dev es una superficie global).

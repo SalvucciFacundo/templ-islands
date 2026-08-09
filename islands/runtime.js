@@ -283,7 +283,13 @@
     debounceTimer = setTimeout(function () {
       trackFetch(root, url, cfg, function (data) {
         return renderInto(root, cfg, data).then(function () {
-          emitSuccess(root);
+          // El renderer pinto el body: si trae field_errors, es un error de
+          // validacion (no exito); el renderer decidio como mostrarlos.
+          if (islandsCore.hasFieldErrors(data)) {
+            emit("islands:error", { island: root.dataset.island, field_errors: data.field_errors });
+          } else {
+            emitSuccess(root);
+          }
           if (onDone) onDone(data);
         });
       }, function (err) {
@@ -297,7 +303,11 @@
   function reRenderClick(root, cfg) {
     trackFetch(root, fillPlaceholders(cfg.endpoint, root), cfg, function (data) {
       return renderInto(root, cfg, data).then(function () {
-        emitSuccess(root);
+        if (islandsCore.hasFieldErrors(data)) {
+          emit("islands:error", { island: root.dataset.island, field_errors: data.field_errors });
+        } else {
+          emitSuccess(root);
+        }
       });
     }, function (err) {
       emitError(root, err);
@@ -306,8 +316,16 @@
 
   function fetchData(url, cfg, signal) {
     return fetch(url, { method: cfg.method || "GET", headers: csrfHeaders(cfg.method), signal: signal }).then(function (res) {
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
+      if (res.ok) return res.json();
+      // no-2xx: si el server responde field_errors (re-render), el body se
+      // deja pasar al renderer para que los pinte inline (patron de
+      // renderers). Sin field_errors, es un error HTTP comun.
+      return res.json().catch(function () {
+        return null;
+      }).then(function (body) {
+        if (islandsCore.hasFieldErrors(body)) return body;
+        throw new Error("HTTP " + res.status);
+      });
     });
   }
 

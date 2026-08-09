@@ -85,3 +85,11 @@ test("formHasFiles es false con un input file vacio", () => {
   // un input file sin seleccionar no agrega entradas al FormData
   assert.strictEqual(core.formHasFiles(fd), false);
 });
+
+test("hasFieldErrors detecta el body de errores por campo", () => {
+  assert.strictEqual(core.hasFieldErrors({ field_errors: { text: "vacio" } }), true);
+  assert.strictEqual(core.hasFieldErrors({ likes: 3 }), false);
+  assert.strictEqual(core.hasFieldErrors({ field_errors: [] }), true);
+  assert.strictEqual(core.hasFieldErrors(null), false);
+  assert.strictEqual(core.hasFieldErrors("no es json"), false);
+});

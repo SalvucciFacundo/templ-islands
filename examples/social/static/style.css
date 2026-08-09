@@ -302,6 +302,16 @@ h1 {
   margin: 0.25rem 0;
 }
 
+.comments-error {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
 .nav {
   display: flex;
   gap: 1rem;

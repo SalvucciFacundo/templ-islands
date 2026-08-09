@@ -135,6 +135,28 @@ must support `?page=N&per=M`.
   every `[data-error-for="text"]`, marks the input `.invalid`, and clears both
   on the next submit.
 
+### Field errors in renderers (re-renders)
+
+The `[data-error-for]` binding applies to **forms**. For re-render islands
+(click/input/change), the renderer owns the error markup: when the server
+answers a non-2xx body with `field_errors`, the runtime passes the body to
+the renderer anyway (instead of dropping it), emits `islands:error` (not
+`islands:success`), and the renderer decides how to show the errors inline:
+
+```js
+function renderList(data) {
+  if (data && data.field_errors) {
+    return Object.keys(data.field_errors)
+      .map((f) => '<p class="inline-error">' + escapeHtml(data.field_errors[f]) + "</p>")
+      .join("");
+  }
+  // ...normal markup for the success case
+}
+```
+
+The example's `comments` renderer follows this pattern (see
+`examples/social/static/comments.js`).
+
 ### 5. Stream (SSE) — real time
 
 The page opts in with a `data-stream` element; the runtime opens an

@@ -69,6 +69,24 @@ test("field errors: empty post shows inline error", async ({ page }) => {
   await expect(page.locator(".new-post input[type=text]")).toHaveClass(/invalid/);
 });
 
+test("renderers: field errors from a re-render render inline", async ({ page }) => {
+  await page.goto("/");
+
+  // El click de "Ver comentarios" hace GET /api/comments/1. Interceptamos la
+  // respuesta: el server "devuelve" 400 con field_errors y el renderer los
+  // pinta inline dentro del target (patron de renderers, no es un form).
+  await page.route("**/api/comments/*", (route) =>
+    route.fulfill({
+      status: 400,
+      contentType: "application/json",
+      body: JSON.stringify({ field_errors: { text: "Comentario invalido" } }),
+    })
+  );
+
+  await page.locator(".comments-toggle").first().click();
+  await expect(page.locator(".comments-error").first()).toContainText("Comentario invalido");
+});
+
 test("upload: file input previews instantly and the post carries the image", async ({ page }) => {
   await page.goto("/");
 
