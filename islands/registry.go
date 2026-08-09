@@ -1,9 +1,5 @@
-// Package islands is the Go core of templ-islands: it lets you declare
-// interactive components ("islands") once and let the generic client runtime
-// handle optimistic mutations, server sync and rollback.
-//
-// This is the minimal seed: one island type (atomic mutation) driven by a
-// generated manifest. No CLI yet — the Go registry IS the source of truth.
+// registry.go: el registro de islas declaradas en Go — la fuente de verdad
+// del manifest que consume el runtime client.
 package islands
 
 import (

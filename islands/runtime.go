@@ -14,13 +14,13 @@ var runtimeCoreJS string
 //go:embed runtime.js
 var runtimeJS string
 
-// RuntimeHandler serves the client runtime (runtime.js) and the generated
-// manifest (manifest.json). Mount it under any prefix:
+// RuntimeHandler sirve el runtime client (runtime.js) y el manifest
+// (manifest.json). Montalo bajo cualquier prefijo:
 //
 //	mux.Handle("GET /islands/", http.StripPrefix("/islands/", reg.RuntimeHandler()))
 //
-// The handler matches by basename, so it works with or without StripPrefix
-// and regardless of the mount point.
+// El handler matchea por basename, asi funciona con o sin StripPrefix y sin
+// importar el punto de montaje.
 func (r *Registry) RuntimeHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		switch path.Base(req.URL.Path) {

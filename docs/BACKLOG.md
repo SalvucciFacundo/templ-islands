@@ -28,13 +28,14 @@ con prioridades.
 ## Prioridad baja / infraestructura
 
 - [ ] Dockerfile + ejemplo de deploy en una instancia propia.
-- [ ] GoDoc completo para el paquete `islands`.
 - [ ] Bench del modo client vs server-driven dentro del repo (el de `demo-social/`
       quedó fuera del repo).
-- [ ] Package docs / doc.go para pkg.go.dev.
 
 ## Hecho recientemente (para referencia)
 
+- ✅ GoDoc: `doc.go` con el package comment completo + ejemplo ejecutable
+      (`ExampleRegistry_Register`) para pkg.go.dev; comments unificados al
+      español en el paquete `islands`.
 - ✅ CLI `templ-islands generate` con subcomando + `--watch` (regenera al guardar
       un .templ; polling con debounce, sin dependencias).
 - ✅ Multi-tab v1 (BroadcastChannel): mutaciones con `data-key` y form submits
