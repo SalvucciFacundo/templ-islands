@@ -64,3 +64,8 @@ test("debounceMs cae al fallback con valores invalidos", () => {
   assert.strictEqual(core.debounceMs("abc", 300), 300);
   assert.strictEqual(core.debounceMs("-5", 300), 300);
 });
+
+test("escapeHtml escapa HTML", () => {
+  assert.strictEqual(core.escapeHtml('<b>&"'), "&lt;b&gt;&amp;&quot;");
+  assert.strictEqual(core.escapeHtml("texto normal"), "texto normal");
+});

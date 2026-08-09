@@ -37,10 +37,4 @@ window.islandsRenderers["post-list"] = function (posts) {
     .join("");
 };
 
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+// escapeHtml viene del runtime core (islandsCore) — se expone global.

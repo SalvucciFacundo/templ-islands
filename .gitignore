@@ -7,6 +7,11 @@
 *.out
 *.test
 
+# Playwright / E2E
+node_modules/
+test-results/
+playwright-report/
+
 # Editores / SO
 .idea/
 .vscode/

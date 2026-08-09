@@ -87,13 +87,13 @@
       prev.push({
         el: el,
         text: el.textContent,
-        hadClass: field.op === "class-toggle" ? el.classList.contains(field.Class) : null,
-        cls: field.Class,
+        hadClass: field.op === "class-toggle" ? el.classList.contains(field["class"]) : null,
+        cls: field["class"],
       });
       if (field.op === "inc" || field.op === "toggle-text") {
         el.textContent = islandsCore.optimisticValue(field, el.textContent);
       } else if (field.op === "class-toggle") {
-        el.classList.toggle(field.Class);
+        el.classList.toggle(field["class"]);
       }
     });
   }
@@ -107,7 +107,7 @@
       if (field.op === "toggle-text") {
         el.textContent = v ? field["true"] : field["false"];
       } else if (field.op === "class-toggle") {
-        el.classList.toggle(field.Class, !!v);
+        el.classList.toggle(field["class"], !!v);
       } else {
         el.textContent = v;
       }
@@ -129,6 +129,13 @@
       if (!root || !manifest) return;
       var cfg = manifest[root.dataset.island];
       if (!cfg) return;
+
+      // Un click en el boton de submit de un form pertenece al form submit,
+      // no a una mutacion/re-render por click: dejamos que el evento submit
+      // fluya al listener de submit.
+      if (e.target.closest("button[type=submit], input[type=submit]")) {
+        return;
+      }
 
       e.preventDefault();
       e.stopPropagation();
@@ -215,30 +222,45 @@
       } else if (root.dataset.swap === "prepend") {
         target.insertAdjacentHTML("afterbegin", html);
       } else {
+        // Reemplazo completo: la paginacion del mismo target queda invalida.
+        // Desconectamos el intersect para que no agregue posts al resultado
+        // filtrado (ej: buscar mientras el infinite scroll esta activo).
+        disconnectIntersect(root.dataset.target);
         target.innerHTML = html;
       }
     });
   }
 
+  function disconnectIntersect(target) {
+    if (intersectObservers[target]) {
+      intersectObservers[target].disconnect();
+      delete intersectObservers[target];
+    }
+    delete intersectBusy[target];
+  }
+
   // input / change: debounced fetch with the control value as data-param.
   // AbortController cancels the previous in-flight request for the same
-  // target, so a slow stale response can never overwrite newer data.
-  function abortPending(target) {
-    if (abortControllers[target]) {
-      abortControllers[target].abort();
-      delete abortControllers[target];
+  // ISLAND + target, so a slow stale response can never overwrite newer
+  // data. The key is per-island: the search and the infinite scroll share
+  // the #feed target but must not cancel each other.
+  function abortPending(key) {
+    if (abortControllers[key]) {
+      abortControllers[key].abort();
+      delete abortControllers[key];
     }
   }
 
-  function trackFetch(target, url, cfg, then, fail) {
-    abortPending(target);
+  function trackFetch(root, url, cfg, then, fail) {
+    var key = root.dataset.island + "|" + root.dataset.target;
+    abortPending(key);
     var controller = new AbortController();
-    abortControllers[target] = controller;
+    abortControllers[key] = controller;
     fetchData(url, cfg, controller.signal).then(then, function (err) {
       if (err && err.name === "AbortError") return; // esperado: reemplazado
       fail(err);
     }).finally(function () {
-      if (abortControllers[target] === controller) delete abortControllers[target];
+      if (abortControllers[key] === controller) delete abortControllers[key];
     });
   }
 
@@ -253,7 +275,7 @@
 
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(function () {
-      trackFetch(root.dataset.target, url, cfg, function (data) {
+      trackFetch(root, url, cfg, function (data) {
         return renderInto(root, cfg, data).then(function () {
           emitSuccess(root);
           if (onDone) onDone(data);
@@ -267,7 +289,7 @@
 
   // click: fetch with {placeholder} tokens filled from data-* attributes.
   function reRenderClick(root, cfg) {
-    trackFetch(root.dataset.target, fillPlaceholders(cfg.endpoint, root), cfg, function (data) {
+    trackFetch(root, fillPlaceholders(cfg.endpoint, root), cfg, function (data) {
       return renderInto(root, cfg, data).then(function () {
         emitSuccess(root);
       });

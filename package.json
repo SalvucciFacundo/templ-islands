@@ -1,0 +1,12 @@
+{
+  "name": "templ-islands",
+  "version": "0.3.0",
+  "private": true,
+  "description": "E2E browser tests (Playwright)",
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0"
+  }
+}

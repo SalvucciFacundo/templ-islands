@@ -41,10 +41,22 @@
       var n = parseInt(raw, 10);
       return isNaN(n) || n < 0 ? fallback : n;
     },
+
+    // Escape HTML para los renderers. Se expone como funcion global
+    // (escapeHtml) para que cualquier renderer JS pueda usarla sin depender
+    // de otro archivo.
+    escapeHtml: function (s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    },
   };
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = core;
   }
   global.islandsCore = core;
+  global.escapeHtml = core.escapeHtml; // disponible para los renderers
 })(typeof window !== "undefined" ? window : globalThis);

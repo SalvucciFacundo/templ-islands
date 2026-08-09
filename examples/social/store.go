@@ -34,7 +34,7 @@ type Store struct {
 
 func NewStore() *Store {
 	s := &Store{next: 1, comments: make(map[int][]Comment), nextComID: 1}
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= 12; i++ {
 		s.posts = append(s.posts, views.Post{
 			ID:       i,
 			Text:     fmt.Sprintf("Post de ejemplo #%d — renderizado en el servidor, isla en el cliente.", i),
@@ -47,7 +47,7 @@ func NewStore() *Store {
 		}
 		s.nextComID += 2
 	}
-	s.next = 6
+	s.next = 13
 	return s
 }
 
