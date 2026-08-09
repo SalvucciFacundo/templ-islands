@@ -1,7 +1,7 @@
 package views
 
 // @island post-list endpoint=/api/posts method=GET render=/static/post-list.js trigger=input
-// @island post-more endpoint=/api/posts method=GET render=/static/post-list.js trigger=intersect
+// @island post-more endpoint=/api/posts method=GET render=/static/post-list.js trigger=intersect renderer=post-list
 templ PostList(posts []Post) {
 	@NewPostForm()
 	<input

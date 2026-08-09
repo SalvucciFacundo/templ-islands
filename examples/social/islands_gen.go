@@ -6,7 +6,7 @@ import "github.com/SalvucciFacundo/templ-islands/islands"
 
 // RegisterIslands registra las islas declaradas con // @island en los .templ.
 func RegisterIslands(reg *islands.Registry) {
-	reg.RegisterRender("chat-form", "/api/chat", "POST", "/static/chat-renderer.js", "submit")
+	reg.RegisterRender("chat-form", "/api/chat", "POST", "/static/chat-renderer.js", "submit", islands.WithRenderer("chat-stream"))
 	reg.RegisterStream("chat-stream", "/events/chat", "/static/chat-renderer.js")
 	reg.Register("follow",
 		[]islands.Field{
@@ -48,7 +48,7 @@ func RegisterIslands(reg *islands.Registry) {
 		"/api/like/{post_id}", "POST")
 	reg.RegisterRender("new-post", "/api/posts", "POST", "/static/post-list.js", "submit")
 	reg.RegisterRender("comments", "/api/comments/{post_id}", "GET", "/static/comments.js", "click")
-	reg.RegisterRender("delete-comment", "/api/delete_comment/{comment_id}", "POST", "/static/comments.js", "click")
+	reg.RegisterRender("delete-comment", "/api/delete_comment/{comment_id}", "POST", "/static/comments.js", "click", islands.WithRenderer("comments"))
 	reg.RegisterRender("post-list", "/api/posts", "GET", "/static/post-list.js", "input")
-	reg.RegisterRender("post-more", "/api/posts", "GET", "/static/post-list.js", "intersect")
+	reg.RegisterRender("post-more", "/api/posts", "GET", "/static/post-list.js", "intersect", islands.WithRenderer("post-list"))
 }

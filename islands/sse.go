@@ -70,3 +70,19 @@ func WriteSSERetry(w http.ResponseWriter, base, jitter int) {
 		f.Flush()
 	}
 }
+
+// WriteSSEPing emite un comentario SSE (": ping") que el navegador ignora.
+// Sirve de heartbeat para mantener la conexion viva a traves de proxies que
+// cortan conexiones largas. Llamalo periodicamente (ej: cada 15s) mientras
+// no haya eventos reales:
+//
+//	ticker := time.NewTicker(15 * time.Second)
+//	...
+//	case <-ticker.C:
+//		islands.WriteSSEPing(w)
+func WriteSSEPing(w http.ResponseWriter) {
+	fmt.Fprint(w, ": ping\n\n")
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+}

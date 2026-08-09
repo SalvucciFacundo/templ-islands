@@ -1,6 +1,6 @@
 package views
 
-// @island chat-form endpoint=/api/chat method=POST render=/static/chat-renderer.js trigger=submit
+// @island chat-form endpoint=/api/chat method=POST render=/static/chat-renderer.js trigger=submit renderer=chat-stream
 // @island chat-stream endpoint=/events/chat stream=true render=/static/chat-renderer.js
 templ ChatPage() {
 	<div class="chat">

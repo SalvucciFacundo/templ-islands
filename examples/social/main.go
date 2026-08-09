@@ -213,10 +213,17 @@ func main() {
 
 		ch := broker.Subscribe()
 		defer broker.Unsubscribe(ch)
+
+		// Heartbeat: mantiene el stream vivo a traves de proxies que cortan
+		// conexiones largas (comentario SSE que el navegador ignora).
+		ticker := time.NewTicker(15 * time.Second)
+		defer ticker.Stop()
 		for {
 			select {
 			case <-r.Context().Done():
 				return
+			case <-ticker.C:
+				islands.WriteSSEPing(w)
 			case ev := <-ch:
 				if err := islands.WriteSSEID(w, ev.ID, ev.Data); err != nil {
 					return

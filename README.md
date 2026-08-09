@@ -172,12 +172,14 @@ islands.WriteSSEID(w, id, map[string]any{"messages": msgs}) // event with id
 | Function | Purpose |
 |---|---|
 | `New()` / `Register(name, fields, endpoint, method)` | Declare a mutation island |
-| `RegisterRender(name, endpoint, method, render, trigger)` | Declare a re-render island |
-| `RegisterStream(name, endpoint, render)` | Declare a real-time SSE island |
-| `RuntimeHandler()` | Serves `runtime.js` + generated `manifest.json` (embedded) |
+| `RegisterRender(name, endpoint, method, render, trigger, opts...)` | Declare a re-render island |
+| `RegisterStream(name, endpoint, render, opts...)` | Declare a real-time SSE island |
+| `WithRenderer(islandName)` | Reuse another island's JS renderer (e.g. `post-more` renders with `post-list`) |
+| `RuntimeHandler()` | Serves `runtime.js` (core + runtime, cacheable) + generated `manifest.json` (no-cache) |
 | `SSEHeaders(w)` / `WriteSSE(w, data)` | Open and write an SSE stream |
 | `WriteSSEID(w, id, data)` | Write an SSE event with `id:` (for `Last-Event-ID` resume) |
 | `WriteSSERetry(w, base, jitter)` | Emit `retry:` with jitter against reconnect storms |
+| `WriteSSEPing(w)` | Heartbeat comment to keep streams alive through proxies |
 
 ## CLI (`templ-islands`)
 

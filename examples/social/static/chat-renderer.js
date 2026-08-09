@@ -1,9 +1,7 @@
 // Renderer client del chat (form submit + stream SSE).
 //
-// Registra dos islas que comparten el mismo renderer:
-//   - "chat-form":   el form submit re-renderiza al enviar.
-//   - "chat-stream": el EventSource re-renderiza cuando llega un evento SSE
-//     (mensajes del agente que llegan solos).
+// "chat-form" declara renderer=chat-stream, asi el renderer se registra una
+// sola vez bajo "chat-stream" y ambas islas lo reusan.
 window.islandsRenderers = window.islandsRenderers || {};
 
 function renderChat(data) {
@@ -23,5 +21,4 @@ function renderChat(data) {
     .join("");
 }
 
-islandsRenderers["chat-form"] = renderChat;
 islandsRenderers["chat-stream"] = renderChat;

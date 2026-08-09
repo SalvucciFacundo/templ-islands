@@ -14,7 +14,7 @@ import (
 )
 
 // @island comments endpoint=/api/comments/{post_id} method=GET render=/static/comments.js trigger=click
-// @island delete-comment endpoint=/api/delete_comment/{comment_id} method=POST render=/static/comments.js trigger=click
+// @island delete-comment endpoint=/api/delete_comment/{comment_id} method=POST render=/static/comments.js trigger=click renderer=comments
 func PostCard(p Post) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

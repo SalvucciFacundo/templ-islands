@@ -143,6 +143,17 @@ hub conecta el agente con los suscriptores SSE.
 
    El runtime NO reimplementa backoff: el `EventSource` respeta el `retry:` del
    servidor, que es donde se controla el jitter.
+
+4. **Heartbeats.** Algunos proxies cortan conexiones largas sin tráfico. El
+   servidor debe emitir un comentario SSE periódicamente para mantener el
+   stream vivo (el navegador lo ignora):
+
+   ```go
+   ticker := time.NewTicker(15 * time.Second)
+   // en el loop del stream:
+   case <-ticker.C:
+       islands.WriteSSEPing(w)
+   ```
 4. **SSE unidireccional.** El envío del usuario sigue siendo form submit (POST).
 5. **Resiliencia nativa por `Last-Event-ID`.** Cada evento lleva `id: N`
    (`WriteSSEID`); si la conexion cae, el navegador envia el header

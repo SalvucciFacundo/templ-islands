@@ -47,11 +47,15 @@
 
   // Fill {post_id} placeholders in the endpoint from data-post-id on the root.
   function fillPlaceholders(endpoint, root) {
-    return endpoint.replace(/\{(\w+)\}/g, function (match, key) {
-      var attr = "data-" + key.replace(/_/g, "-");
-      var val = root.getAttribute(attr);
-      return val != null ? val : match;
+    return islandsCore.fillPlaceholders(endpoint, dataAttrs(root));
+  }
+
+  function dataAttrs(root) {
+    var out = {};
+    Array.prototype.forEach.call(root.attributes, function (a) {
+      if (a.name.indexOf("data-") === 0) out[a.name] = a.value;
     });
+    return out;
   }
 
   function emit(name, detail) {
@@ -86,10 +90,8 @@
         hadClass: field.op === "class-toggle" ? el.classList.contains(field.Class) : null,
         cls: field.Class,
       });
-      if (field.op === "inc") {
-        el.textContent = (parseInt(el.textContent, 10) || 0) + field.delta;
-      } else if (field.op === "toggle-text") {
-        el.textContent = el.textContent === field["true"] ? field["false"] : field["true"];
+      if (field.op === "inc" || field.op === "toggle-text") {
+        el.textContent = islandsCore.optimisticValue(field, el.textContent);
       } else if (field.op === "class-toggle") {
         el.classList.toggle(field.Class);
       }
@@ -201,8 +203,11 @@
   function renderInto(root, cfg, data) {
     var target = document.querySelector(root.dataset.target);
     return loadRenderer(cfg.render).then(function () {
-      var renderer = window.islandsRenderers && window.islandsRenderers[root.dataset.island];
-      if (!renderer) throw new Error("renderer not found for " + root.dataset.island);
+      // cfg.renderer reusa el renderer registrado bajo OTRA isla
+      // (ej: "post-more" renderiza con el renderer de "post-list").
+      var rendererName = cfg.renderer || root.dataset.island;
+      var renderer = window.islandsRenderers && window.islandsRenderers[rendererName];
+      if (!renderer) throw new Error("renderer not found for " + rendererName);
       if (!target) return;
       var html = renderer(data);
       if (root.dataset.swap === "append") {
@@ -241,10 +246,10 @@
     var param = root.dataset.param || "q";
     // El valor sale del input (búsqueda) o, para intersect, del atributo
     // data-<param> del propio elemento (data-page).
-    var value = root.value != null ? root.value : (root.dataset[param] || "");
+    var value = islandsCore.controlValue(root.value, param, root.dataset);
     var sep = cfg.endpoint.indexOf("?") >= 0 ? "&" : "?";
     var url = cfg.endpoint + sep + param + "=" + encodeURIComponent(value);
-    var delay = parseInt(root.dataset.debounce, 10) || 300;
+    var delay = islandsCore.debounceMs(root.dataset.debounce, 300);
 
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(function () {

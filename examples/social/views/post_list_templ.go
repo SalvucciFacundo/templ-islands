@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 // @island post-list endpoint=/api/posts method=GET render=/static/post-list.js trigger=input
-// @island post-more endpoint=/api/posts method=GET render=/static/post-list.js trigger=intersect
+// @island post-more endpoint=/api/posts method=GET render=/static/post-list.js trigger=intersect renderer=post-list
 func PostList(posts []Post) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

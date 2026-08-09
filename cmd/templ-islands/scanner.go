@@ -17,6 +17,7 @@ type IslandSpec struct {
 	Render   string
 	Trigger  string
 	Stream   bool
+	Renderer string
 	Fields   []FieldSpec
 }
 
@@ -163,6 +164,8 @@ func parseIsland(line string) (IslandSpec, error) {
 			spec.Trigger = v
 		case "stream":
 			spec.Stream = v == "true"
+		case "renderer":
+			spec.Renderer = v
 		}
 	}
 	if spec.Endpoint == "" {

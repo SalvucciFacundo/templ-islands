@@ -6,7 +6,7 @@ import (
 )
 
 // @island comments endpoint=/api/comments/{post_id} method=GET render=/static/comments.js trigger=click
-// @island delete-comment endpoint=/api/delete_comment/{comment_id} method=POST render=/static/comments.js trigger=click
+// @island delete-comment endpoint=/api/delete_comment/{comment_id} method=POST render=/static/comments.js trigger=click renderer=comments
 templ PostCard(p Post) {
 	<div class="post">
 		<div class="post-header">

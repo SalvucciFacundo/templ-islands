@@ -8,7 +8,7 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// @island chat-form endpoint=/api/chat method=POST render=/static/chat-renderer.js trigger=submit
+// @island chat-form endpoint=/api/chat method=POST render=/static/chat-renderer.js trigger=submit renderer=chat-stream
 // @island chat-stream endpoint=/events/chat stream=true render=/static/chat-renderer.js
 func ChatPage() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {

@@ -63,6 +63,23 @@ type Island struct {
 	// Stream marks a real-time island: the runtime opens an EventSource to
 	// Endpoint and re-renders the target whenever the server emits an event.
 	Stream bool
+	// Renderer is the name of another island whose JS renderer this island
+	// reuses (e.g. a "post-more" island rendering with the "post-list"
+	// renderer). Empty means the renderer is registered under this island's
+	// own name.
+	Renderer string
+}
+
+// RenderOption tweaks a re-render or stream island at registration time.
+type RenderOption func(*Island)
+
+// WithRenderer makes the island use the JS renderer registered under
+// another island's name. Use it when two islands share one renderer:
+//
+//	reg.RegisterRender("post-more", "/api/posts", "GET", "/static/post-list.js", "intersect",
+//		islands.WithRenderer("post-list"))
+func WithRenderer(islandName string) RenderOption {
+	return func(i *Island) { i.Renderer = islandName }
 }
 
 // Registry holds all registered islands and is the single source of truth.
@@ -79,16 +96,20 @@ func New() *Registry {
 // RegisterStream adds a real-time island: the runtime subscribes to Endpoint
 // via SSE and re-renders the target with the JS renderer at render on every
 // event the server emits. See docs/SSE.md for the full design.
-func (r *Registry) RegisterStream(name, endpoint, render string) {
+func (r *Registry) RegisterStream(name, endpoint, render string, opts ...RenderOption) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.isles[name] = Island{
+	i := Island{
 		Name:     name,
 		Endpoint: endpoint,
 		Method:   "GET",
 		Render:   render,
 		Stream:   true,
 	}
+	for _, o := range opts {
+		o(&i)
+	}
+	r.isles[name] = i
 }
 
 // Register adds an island under name.
@@ -108,16 +129,20 @@ func (r *Registry) Register(name string, fields []Field, endpoint, method string
 // Render. Unlike Register, this island has no atomic fields — the whole
 // target is re-rendered from data. Method is the HTTP method used
 // (GET for filters/search, POST for form submits).
-func (r *Registry) RegisterRender(name, endpoint, method, render, trigger string) {
+func (r *Registry) RegisterRender(name, endpoint, method, render, trigger string, opts ...RenderOption) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.isles[name] = Island{
+	i := Island{
 		Name:     name,
 		Endpoint: endpoint,
 		Method:   method,
 		Render:   render,
 		Trigger:  trigger,
 	}
+	for _, o := range opts {
+		o(&i)
+	}
+	r.isles[name] = i
 }
 
 // Island returns a registered island by name.
@@ -158,6 +183,7 @@ type manifestIsland struct {
 	Render   string          `json:"render,omitempty"`
 	Trigger  string          `json:"trigger,omitempty"`
 	Stream   bool            `json:"stream,omitempty"`
+	Renderer string          `json:"renderer,omitempty"`
 }
 
 // Manifest returns the JSON-serializable view of the registry.
@@ -185,6 +211,7 @@ func (r *Registry) Manifest() map[string]manifestIsland {
 			Render:   i.Render,
 			Trigger:  i.Trigger,
 			Stream:   i.Stream,
+			Renderer: i.Renderer,
 		}
 	}
 	return out
