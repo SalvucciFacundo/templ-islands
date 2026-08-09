@@ -1,0 +1,40 @@
+package views
+
+// @island post-panel endpoint=/api/panel/{tab} method=GET render=/static/panel.js trigger=click
+templ TabsDemo() {
+	<div class="tabs-demo">
+		<div class="tabs" data-tabs>
+			<button
+				class="tab active"
+				data-island="post-panel"
+				data-trigger="click"
+				data-tab="resumen"
+				data-target="#panel-resumen"
+			>Resumen</button>
+			<button
+				class="tab"
+				data-island="post-panel"
+				data-trigger="click"
+				data-tab="actividad"
+				data-target="#panel-resumen"
+			>Actividad</button>
+			<button
+				class="tab"
+				data-island="post-panel"
+				data-trigger="click"
+				data-tab="config"
+				data-target="#panel-resumen"
+			>Configuración</button>
+		</div>
+		// El panel inicial es SSR (mismo HTML que generaria el renderer para
+		// "resumen"); los clicks lo re-renderizan desde /api/panel/{tab}.
+		<div id="panel-resumen" class="tab-panel">
+			<h3 class="panel-title">Resumen</h3>
+			<ul class="panel-lines">
+				<li>3 posts hoy</li>
+				<li>12 likes recibidos</li>
+				<li>2 comentarios</li>
+			</ul>
+		</div>
+	</div>
+}

@@ -26,8 +26,6 @@ con prioridades.
       NO alcanza: cada handler tendría que responder distinto según el modo.
 - [ ] **Fallback sin JS (nivel 2)**: envolver los botones en `<form method="POST">`
       clásico para que funcionen con JavaScript 100% apagado (nicho <1%).
-- [ ] **Tabs/paneles**: cambiar de pestaña sin recargar (re-render de un contenedor
-      según la tab activa).
 
 ## Prioridad baja / infraestructura
 
@@ -35,6 +33,9 @@ con prioridades.
 
 ## Hecho recientemente (para referencia)
 
+- ✅ Tabs/paneles: patrón documentado + helper mínimo del runtime
+      (`data-tabs` + `data-tab` → toggle `active` al instante) + demo en el
+      ejemplo (`/api/panel/{tab}`, renderer panel.js) + E2E.
 - ✅ Bench client vs server-driven (`examples/social/bench_test.go`): la misma
       acción en ambos modos. Feed: JSON = 17% del HTML y ~10x menos CPU/mem
       que renderizar con templ. Like: JSON = 10% del HTML. El costo se traslada

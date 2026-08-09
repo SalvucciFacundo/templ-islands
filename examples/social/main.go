@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/SalvucciFacundo/templ-islands/examples/social/views"
 	"github.com/SalvucciFacundo/templ-islands/islands"
 )
@@ -39,7 +40,32 @@ func main() {
 
 	// GET / — feed SSR con la primera pagina + el sentinel de infinite scroll.
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		views.Layout("Demo Social", views.PostList(store.SearchPaged("", 1, 3))).Render(r.Context(), w)
+		views.Layout("Demo Social", templ.Join(views.TabsDemo(), views.PostList(store.SearchPaged("", 1, 3)))).Render(r.Context(), w)
+	})
+
+	// GET /api/panel/{tab} — panel de ejemplo con tabs (isla post-panel).
+	// El runtime rellena {tab} con data-tab de la tab clickeada.
+	mux.HandleFunc("GET /api/panel/{tab}", func(w http.ResponseWriter, r *http.Request) {
+		var data map[string]any
+		switch r.PathValue("tab") {
+		case "actividad":
+			data = map[string]any{
+				"titulo": "Actividad",
+				"lineas": []string{"Like en post #3", "Comentario en #1", "Follow a autor 5"},
+			}
+		case "config":
+			data = map[string]any{
+				"titulo": "Configuración",
+				"lineas": []string{"Modo: optimistic UI (runtime)", "Stream SSE: activo", "Multi-tab: activo"},
+			}
+		default:
+			data = map[string]any{
+				"titulo": "Resumen",
+				"lineas": []string{"3 posts hoy", "12 likes recibidos", "2 comentarios"},
+			}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(data)
 	})
 
 	// GET /api/posts?q=...&page=N&per=M — datos JSON. Con page pagina el

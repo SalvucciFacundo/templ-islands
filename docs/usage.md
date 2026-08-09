@@ -157,6 +157,30 @@ function renderList(data) {
 The example's `comments` renderer follows this pattern (see
 `examples/social/static/comments.js`).
 
+### Tabs — re-render by click with active state
+
+The tab pattern is a click re-render with a placeholder, plus a tiny runtime
+helper for the active state. Wrap the tabs in `data-tabs`, give each tab a
+`data-tab` value, and target the panel:
+
+```templ
+// @island post-panel endpoint=/api/panel/{tab} method=GET render=/static/panel.js trigger=click
+<div class="tabs" data-tabs>
+	<button class="tab active" data-island="post-panel" data-trigger="click" data-tab="resumen" data-target="#panel-resumen">Resumen</button>
+	<button class="tab" data-island="post-panel" data-trigger="click" data-tab="actividad" data-target="#panel-resumen">Actividad</button>
+</div>
+<div id="panel-resumen" class="tab-panel"><!-- SSR initial panel --></div>
+```
+
+- The endpoint placeholder `{tab}` is filled from `data-tab`
+  (`fillPlaceholders`), so the server returns the right panel as JSON.
+- On click the runtime toggles the `active` class between the tabs of the
+  group **instantly** (optimistic, like every mutation) and the panel
+  re-renders when the server answers.
+- The renderer owns the panel markup; the initial panel is server-rendered.
+
+See `examples/social/views/tabs_demo.templ` and `static/panel.js`.
+
 ### 5. Stream (SSE) — real time
 
 The page opts in with a `data-stream` element; the runtime opens an

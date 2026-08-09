@@ -147,6 +147,17 @@
 
       // click -> re-render (expand comments, refresh a panel).
       if (cfg.render) {
+        // Tabs: al clickear una tab (data-tab dentro de un [data-tabs]), la
+        // clase "active" se alterna al instante entre las tabs del grupo;
+        // el panel lo re-renderiza el re-render normal del click.
+        if (root.dataset.tab) {
+          var tabGroup = root.closest("[data-tabs]");
+          if (tabGroup) {
+            Array.prototype.forEach.call(tabGroup.querySelectorAll("[data-tab]"), function (t) {
+              t.classList.toggle("active", t === root);
+            });
+          }
+        }
         reRenderClick(root, cfg);
         return;
       }

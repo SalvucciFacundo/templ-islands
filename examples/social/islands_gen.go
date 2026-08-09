@@ -51,4 +51,5 @@ func RegisterIslands(reg *islands.Registry) {
 	reg.RegisterRender("delete-comment", "/api/delete_comment/{comment_id}", "POST", "/static/comments.js", "click", islands.WithRenderer("comments"))
 	reg.RegisterRender("post-list", "/api/posts", "GET", "/static/post-list.js", "input")
 	reg.RegisterRender("post-more", "/api/posts", "GET", "/static/post-list.js", "intersect", islands.WithRenderer("post-list"))
+	reg.RegisterRender("post-panel", "/api/panel/{tab}", "GET", "/static/panel.js", "click")
 }

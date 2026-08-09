@@ -8,8 +8,8 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// @island new-post endpoint=/api/posts method=POST render=/static/post-list.js trigger=submit renderer=post-list
-func NewPostForm() templ.Component {
+// @island post-panel endpoint=/api/panel/{tab} method=GET render=/static/panel.js trigger=click
+func TabsDemo() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -30,7 +30,7 @@ func NewPostForm() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form class=\"new-post\" data-island=\"new-post\" data-trigger=\"submit\" data-target=\"#feed\"><input type=\"text\" name=\"text\" placeholder=\"Escribi un post...\" required><div id=\"new-post-previews\" class=\"previews\"></div><label class=\"upload-label\">Subir imagen <input type=\"file\" name=\"image\" accept=\"image/*\" data-preview=\"#new-post-previews\"></label><progress class=\"upload-progress\" max=\"100\" value=\"0\"></progress> <button type=\"submit\">Publicar</button> <span class=\"field-error\" data-error-for=\"text\"></span> <span class=\"field-error\" data-error-for=\"image\"></span></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"tabs-demo\"><div class=\"tabs\" data-tabs><button class=\"tab active\" data-island=\"post-panel\" data-trigger=\"click\" data-tab=\"resumen\" data-target=\"#panel-resumen\">Resumen</button> <button class=\"tab\" data-island=\"post-panel\" data-trigger=\"click\" data-tab=\"actividad\" data-target=\"#panel-resumen\">Actividad</button> <button class=\"tab\" data-island=\"post-panel\" data-trigger=\"click\" data-tab=\"config\" data-target=\"#panel-resumen\">Configuración</button></div><div id=\"panel-resumen\" class=\"tab-panel\"><h3 class=\"panel-title\">Resumen</h3><ul class=\"panel-lines\"><li>3 posts hoy</li><li>12 likes recibidos</li><li>2 comentarios</li></ul></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

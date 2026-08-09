@@ -115,6 +115,21 @@ test("upload: file input previews instantly and the post carries the image", asy
   expect(src).toMatch(/^\/static\/uploads\//);
 });
 
+test("tabs: click switches the panel and marks the active tab", async ({ page }) => {
+  await page.goto("/");
+  const panel = page.locator("#panel-resumen");
+
+  // panel inicial SSR
+  await expect(panel).toContainText("Resumen");
+  await expect(page.locator('[data-tab="resumen"]')).toHaveClass(/active/);
+
+  // click en otra tab: el panel se re-renderiza y la tab activa cambia
+  await page.locator('[data-tab="actividad"]').click();
+  await expect(panel).toContainText("Actividad");
+  await expect(page.locator('[data-tab="actividad"]')).toHaveClass(/active/);
+  await expect(page.locator('[data-tab="resumen"]')).not.toHaveClass(/active/);
+});
+
 test("multi-tab: like in one tab syncs to the other instantly", async ({ page }) => {
   // segunda pestana del MISMO context: comparte el BroadcastChannel
   const pageB = await page.context().newPage();
