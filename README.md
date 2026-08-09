@@ -35,7 +35,7 @@ go install github.com/SalvucciFacundo/templ-islands/cmd/templ-islands@latest
 ```
 
 1. **Declare** an island next to your component with `// @island` + `// @field`.
-2. **Generate** the registry: `templ-islands generate -dir . -out islands_gen.go -package main`.
+2. **Generate** the registry: `templ-islands generate --dir . --out islands_gen.go --package main`.
 3. **Serve** the runtime: `mux.Handle("GET /islands/", http.StripPrefix("/islands/", reg.RuntimeHandler()))`.
 4. Run the example with every capability: `cd examples/social && go run .` → http://localhost:8081.
 

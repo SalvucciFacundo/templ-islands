@@ -29,7 +29,7 @@ templ LikeButton(post Post) {
 ```
 
 ```bash
-templ-islands generate -dir . -out islands_gen.go -package main
+templ-islands generate --dir . --out islands_gen.go --package main
 # → generadas 1 islas (3 campos) -> islands_gen.go
 ```
 
@@ -219,11 +219,14 @@ uploading with `data-preview`.
 ## CLI (`templ-islands`)
 
 ```
-templ-islands -dir . -out islands_gen.go -package main
+templ-islands generate --dir . --out islands_gen.go --package main
+templ-islands generate --watch     # regenera al guardar un .templ
 ```
 
 Scans `.templ` files for `// @island` directives and generates `RegisterIslands`.
 Validates that every `data-mutate` selector exists in the template.
+With `--watch` the command stays running and regenerates whenever a `.templ`
+changes (polling with debounce, works on any filesystem).
 
 ### Directives reference
 

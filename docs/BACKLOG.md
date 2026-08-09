@@ -19,8 +19,6 @@ con prioridades.
       atributos `data-*` de Datastar según el adapter elegido.
 - [ ] **Fallback sin JS (nivel 2)**: envolver los botones en `<form method="POST">`
       clásico para que funcionen con JavaScript 100% apagado (nicho <1%).
-- [ ] **CLI con subcomando `generate` explícito** (`templ-islands generate` en vez
-      de flags solos) + `--watch` para regenerar al editar templates.
 - [ ] **Tabs/paneles**: cambiar de pestaña sin recargar (re-render de un contenedor
       según la tab activa).
 - [ ] **Errores por campo en renderers**: patrón documentado para renderers que
@@ -37,6 +35,8 @@ con prioridades.
 
 ## Hecho recientemente (para referencia)
 
+- ✅ CLI `templ-islands generate` con subcomando + `--watch` (regenera al guardar
+      un .templ; polling con debounce, sin dependencias).
 - ✅ Multi-tab v1 (BroadcastChannel): mutaciones con `data-key` y form submits
       se sincronizan entre pestañas del mismo origin; el server gana, los peers
       aplican en silencio. E2E multi-pestaña real (like + refresh).
