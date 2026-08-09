@@ -15,6 +15,9 @@ flowchart TD
             I["3. Infinite scroll (intersect)<br/>IntersectionObserver + append"]
             F["4. Form submit<br/>field_errors binding"]
             S["5. Stream SSE<br/>EventSource + Last-Event-ID"]
+            U["6. File upload<br/>multipart + islands:progress + previews"]
+            T["7. Multi-tab<br/>BroadcastChannel (mutated / refresh)"]
+            P["8. Tabs<br/>data-tabs + active toggle"]
         end
         HTMX["htmx Fallback (hx-post)"]
     end
@@ -43,11 +46,15 @@ templ-islands/
 │   ├── runtime.go        # RuntimeHandler (embedded runtime.js + manifest)
 │   ├── runtime-core.js   # Pure functions (tested with node --test)
 │   ├── runtime.js        # Generic client runtime (DOM)
-│   └── sse.go            # SSE helpers (headers, write, retry, ping)
+│   ├── sse.go            # SSE helpers (headers, write, retry, ping)
+│   ├── doc.go            # Package docs (pkg.go.dev)
+│   └── example_test.go   # Runnable package example
 ├── cmd/templ-islands/    # CLI: scans @island directives, generates the registry
-├── examples/social/      # 9 islands: like, follow, search, infinite scroll,
-│                         # posts, comments, delete, agent chat (form + SSE)
-└── docs/                 # usage, SSE design, proposal, backlog
+│                         # (generate subcommand + --watch)
+├── examples/social/      # 10 islands: like, follow, search, infinite scroll,
+│                         # posts, comments, delete, agent chat (form + SSE),
+│                         # tabs panel + upload with image posts
+└── docs/                 # usage, SSE, multitab, architecture, proposal, backlog
 ```
 
 ## Design decisions
@@ -63,14 +70,22 @@ templ-islands/
   instantly, the server response always wins, failures roll back.
 - **Progressive enhancement by layers.** Islands keep `hx-post`: if the runtime
   does not load, htmx takes over and the server-driven mode still works.
-- **Hypermedia-agnostic.** The fallback currently uses htmx; the adapter layer
-  is designed to also support Datastar (see the backlog).
+- **XHR only for file uploads.** `fetch` cannot measure upload progress, so the
+  runtime uses XHR (`xhr.upload.onprogress`) for forms with files and keeps
+  `fetch` everywhere else.
+- **The server stays the source of truth in multi-tab sync.** The
+  `BroadcastChannel` carries the server response, never client-computed state;
+  peers apply it silently and unsupported browsers degrade to no sync.
 - **SSE for real time, not WebSocket.** Receiving is one-way (server → client);
   sending is a normal form submit. SSE gives automatic reconnection and
   `Last-Event-ID` resume natively.
 - **The event hub belongs to the app.** The library provides SSE helpers; who
   emits events (agent output, feeds) is the app's responsibility (see the
   example broker).
+- **The benchmark documents the tradeoff.** `examples/social/bench_test.go`
+  measures the same action in both modes: the client mode transfers ~6x less
+  and costs ~10x less CPU/memory on the server; the render moves to the
+  browser, controlled by the parity test.
 
 ## Three problems it solves
 
@@ -79,6 +94,7 @@ templ-islands/
 | Server CPU cost per interaction | Mutation + re-render (client does the work) |
 | Perceived latency | Optimistic UI (instant, sync in background) |
 | Real-time consistency (what others do) | Streams (SSE) |
+| Payload per interaction | JSON instead of HTML fragments (bench: ~6x less) |
 
 See the full proposal and tradeoff analysis in
 [`propuesta-v2.md`](propuesta-v2.md) (Spanish).

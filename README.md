@@ -4,12 +4,13 @@
 
 **Same templ component, rendered server-side or hydrated client-side under Go.**
 Mark components as *islands*, and a generic embedded runtime handles optimistic
-UI, local re-render, forms, infinite scroll and real-time streams — without
+UI, local re-render, forms, infinite scroll, real-time streams, file uploads
+with progress, optimistic media previews, tabs and multi-tab sync — without
 touching JavaScript per island.
 
 ## What it solves
 
-Server-driven apps (templ + htmx/Datastar) re-render a fragment **on the server
+Server-driven apps (templ + htmx) re-render a fragment **on the server
 for every interaction**. Under heavy interactive traffic that CPU cost adds up,
 and every click pays a round-trip.
 
@@ -17,15 +18,17 @@ templ-islands flips the model: the page renders server-side with templ, but each
 **island** runs its interactions in the browser with optimistic UI. The server
 only persists and answers JSON.
 
-The validation demo measured the difference with real traffic:
+The in-repo benchmark (`go test ./examples/social -bench=. -benchmem`) measures
+the same representative feed in both modes:
 
-| Mode | Renders server-side | Cost per like |
+| Mode | Feed payload | Cost to produce |
 |---|---|---|
-| Server-driven (htmx) | 300 | 0.061 ms render + round-trip |
-| Island (client) | **0** | 0.010 ms persist only |
+| Server-driven (htmx) | 10.9 KB HTML | 44.7 µs, 452 allocs |
+| Island (client) | **1.9 KB JSON** | **4.2 µs, 2 allocs** |
 
-The client mode eliminated **100% of the server-side render**, and rendering one
-tiny button cost ~6x more than the entire JSON operation.
+The client mode transfers ~**6x less** per feed render and costs ~**10x less**
+CPU and memory on the server. The render cost moves to the browser (the JS
+renderer, kept in sync by the parity test) and the user gains optimistic UI.
 
 ## Quick start
 
@@ -61,14 +64,16 @@ Pick a page — the README stays short on purpose:
 | [**Architecture**](docs/architecture.md) | Diagram, layout, design decisions, the three problems it solves |
 | [**Production guide**](docs/production.md) | What breaks behind proxies/CDNs, auth in SSE, CSP, version skew, scaling |
 | [**SSE design**](docs/SSE.md) | Real-time layer: retry, jitter, Last-Event-ID, heartbeats |
+| [**Multi-tab design**](docs/multitab.md) | BroadcastChannel sync: protocol, phases, SSE sharing design |
 | [**Proposal**](docs/propuesta-v2.md) | Original idea and tradeoff analysis (Spanish) |
 | [**Backlog**](docs/BACKLOG.md) | Deferred ideas and priorities |
 
 ## Tests
 
 ```bash
-go test ./...            # unit + golden parity test (needs Node)
-node --test islands/     # runtime core JS tests
+go test ./...                     # unit + golden parity test (needs Node)
+node --test islands/runtime-core.test.js   # runtime core JS tests
+npx playwright test               # E2E browser suite (11 tests)
 ```
 
 ## License

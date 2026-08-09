@@ -54,6 +54,9 @@ enhancement by layers.
 | 3 | **Infinite scroll** | `intersect` | An `IntersectionObserver` on a sentinel fetches the next page and appends it; disconnects when the server answers `[]`. |
 | 4 | **Form submit** (create/edit, checkout) | `submit` | POSTs the form data, re-renders the target, binds `field_errors` inline. |
 | 5 | **Stream (SSE)** (live chat, agent status, tasks) | server events | Opens an `EventSource`, re-renders the target on every event, resumes from `Last-Event-ID`. |
+| 6 | **File upload** (images, media) | `submit` + file input | Detects files and sends native multipart via XHR, emits `islands:progress`, renders optimistic previews with `data-preview`. |
+| 7 | **Multi-tab sync** (likes, feeds across tabs) | `BroadcastChannel` | Broadcasts mutations (`data-key`) and form submits; peers apply the server response silently. |
+| 8 | **Tabs** (panels) | `click` + `data-tabs` | Click re-render with the `{tab}` placeholder; the runtime toggles the active tab instantly. |
 
 ### 1. Mutation — optimistic UI
 
